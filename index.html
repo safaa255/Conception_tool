@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conception Prompt Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,600&family=Spline+Sans+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:            #FAF7F2;
+      --card-bg:       #FFFEF9;
+      --accent:        #C25B2A;
+      --accent-hover:  #A34921;
+      --accent-light:  #F8EDE4;
+      --accent-faint:  #FDF5EF;
+      --text:          #2C2416;
+      --text-2:        #7A6E5F;
+      --text-3:        #A89880;
+      --border:        #E8E2D9;
+      --border-hover:  #D4CABF;
+      --shadow-sm:     0 1px 4px rgba(44,36,22,0.05);
+      --shadow-md:     0 2px 14px rgba(44,36,22,0.07);
+      --radius-card:   18px;
+      --radius-input:  10px;
+      --font-display:  'Fraunces', Georgia, 'Times New Roman', serif;
+      --font-body:     'Spline Sans Mono', 'Courier New', Courier, monospace;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      line-height: 1.65;
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+
+    .site-header {
+      background: #1E1A14;
+      color: #EDE8E0;
+      padding: 3.5rem 2rem 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .site-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 110%, rgba(194,91,42,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      font-family: var(--font-body);
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .site-header h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5.5vw, 3.5rem);
+      font-weight: 600;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .site-header h1 em {
+      font-style: italic;
+      font-weight: 300;
+      color: #C8B8A0;
+    }
+
+    .site-header p {
+      font-size: 0.82rem;
+      color: var(--text-3);
+      max-width: 52ch;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────── */
+
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 5rem;
+    }
+
+    /* ── Top bar ─────────────────────────────────────────────── */
+
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 1.75rem;
+    }
+
+    .btn-fill-example {
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-2);
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 0.45rem 1rem;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+
+    .btn-fill-example:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-faint);
+    }
+
+    /* ── Cards ─────────────────────────────────────────────── */
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-md);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: baseline;
+      gap: 0.8rem;
+      margin-bottom: 1.75rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-num {
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-light);
+      padding: 0.18rem 0.55rem;
+      border-radius: 6px;
+      letter-spacing: 0.02em;
+      flex-shrink: 0;
+      line-height: 1.4;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    /* ── Form fields ─────────────────────────────────────────── */
+
+    .field {
+      margin-bottom: 1.4rem;
+    }
+
+    .field:last-child { margin-bottom: 0; }
+
+    .field > label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.015em;
+    }
+
+    .req { color: var(--accent); margin-left: 2px; }
+
+    .hint {
+      font-size: 0.71rem;
+      color: var(--text-2);
+      margin-top: 0.35rem;
+      line-height: 1.5;
+    }
+
+    .err-msg {
+      font-size: 0.72rem;
+      color: #d94f3d;
+      margin-top: 0.3rem;
+      display: none;
+    }
+
+    input[type="text"],
+    textarea {
+      display: block;
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-input);
+      padding: 0.65rem 0.9rem;
+      font-family: var(--font-body);
+      font-size: 0.83rem;
+      color: var(--text);
+      line-height: 1.55;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
+      resize: vertical;
+    }
+
+    input[type="text"]::placeholder,
+    textarea::placeholder { color: var(--text-3); }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(194,91,42,0.13);
+    }
+
+    input[type="text"].invalid,
+    textarea.invalid {
+      border-color: #d94f3d;
+      box-shadow: 0 0 0 3px rgba(217,79,61,0.1);
+    }
+
+    textarea { min-height: 84px; }
+    textarea.tall { min-height: 130px; }
+
+    /* ── Chip selectors ─────────────────────────────────────── */
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.4rem;
+    }
+
+    .chip {
+      position: relative;
+    }
+
+    .chip input[type="radio"] {
+      position: absolute;
+      width: 1px; height: 1px;
+      opacity: 0;
+    }
+
+    .chip label {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.42rem 0.95rem;
+      border: 1.5px solid var(--border);
+      border-radius: 99px;
+      font-family: var(--font-body);
+      font-size: 0.78rem;
+      font-weight: 400;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all 0.13s;
+      white-space: nowrap;
+      margin-bottom: 0;
+      letter-spacing: 0;
+      user-select: none;
+    }
+
+    .chip input:checked + label {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .chip label:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-faint);
+    }
+
+    .chip input:checked + label:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      color: #fff;
+    }
+
+    /* Focus ring for keyboard nav */
+    .chip input:focus-visible + label {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Confidence hint bubble */
+    .conf-hint {
+      margin-top: 0.75rem;
+      padding: 0.6rem 0.9rem;
+      background: var(--accent-faint);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      font-size: 0.72rem;
+      color: var(--text-2);
+      line-height: 1.5;
+      transition: opacity 0.2s;
+    }
+
+    /* ── Tune section two-col grid ───────────────────────────── */
+
+    .tune-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.4rem;
+    }
+
+    @media (max-width: 520px) {
+      .tune-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Generate button ─────────────────────────────────────── */
+
+    .generate-wrap {
+      text-align: center;
+      padding: 0.5rem 0 0.25rem;
+    }
+
+    .generate-note {
+      font-size: 0.72rem;
+      color: var(--text-3);
+      margin-bottom: 1rem;
+    }
+
+    .btn-generate {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-style: italic;
+      font-weight: 600;
+      color: #fff;
+      background: var(--accent);
+      border: none;
+      border-radius: 12px;
+      padding: 0.9rem 2.75rem;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(194,91,42,0.32);
+      transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+      letter-spacing: 0.005em;
+    }
+
+    .btn-generate:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(194,91,42,0.38);
+    }
+
+    .btn-generate:active { transform: translateY(0); }
+
+    /* ── Output section ─────────────────────────────────────── */
+
+    .output-section {
+      display: none;
+      margin-top: 2.5rem;
+    }
+
+    .output-section.visible { display: block; }
+
+    .output-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-md);
+      padding: 1.75rem 2rem 2rem;
+    }
+
+    .output-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .output-heading {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .output-actions {
+      display: flex;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.42rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.14s;
+      border: 1.5px solid;
+      line-height: 1;
+    }
+
+    .btn-copy {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn-copy:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+    .btn-copy.done {
+      background: #3e9a68;
+      border-color: #3e9a68;
+    }
+
+    .btn-dl {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text-2);
+    }
+
+    .btn-dl:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-faint);
+    }
+
+    .output-box {
+      background: #1C1813;
+      border: 1px solid #332C22;
+      border-radius: 12px;
+      padding: 1.5rem 1.5rem;
+      font-family: var(--font-body);
+      font-size: 0.76rem;
+      line-height: 1.7;
+      color: #E4DAC9;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 560px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #453A2A transparent;
+    }
+
+    .output-box::-webkit-scrollbar { width: 6px; }
+    .output-box::-webkit-scrollbar-track { background: transparent; }
+    .output-box::-webkit-scrollbar-thumb { background: #453A2A; border-radius: 99px; }
+
+    .output-footer {
+      font-size: 0.71rem;
+      color: var(--text-3);
+      text-align: center;
+      margin-top: 0.9rem;
+    }
+
+    /* ── Footer ─────────────────────────────────────────────── */
+
+    .site-footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.7rem;
+      color: var(--text-3);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+
+    @media (max-width: 600px) {
+      .card { padding: 1.5rem 1.25rem; }
+      .container { padding: 1.75rem 1rem 4rem; }
+      .output-card { padding: 1.5rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
+
+<header class="site-header">
+  <p class="eyebrow">Product Owner Tool</p>
+  <h1>Turn rough notes into<br><em>a sharp Claude prompt</em></h1>
+  <p>Fill in what you know — gaps, guesses, and half-formed ideas are fine. This tool assembles a prompt that tells Claude exactly how to write your conception document.</p>
+</header>
+
+<!-- ═══════════════════════════════ MAIN ═════════════════════════════════ -->
+
+<main class="container">
+
+  <div class="top-bar">
+    <button class="btn-fill-example" onclick="fillExample()">Fill with example ↓</button>
+  </div>
+
+  <!-- ── Section 1: The basics ─────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-num">01</span>
+      <span class="card-title">The basics</span>
+    </div>
+
+    <div class="field">
+      <label for="projectName">Project / feature name <span class="req">*</span></label>
+      <input type="text" id="projectName" placeholder="e.g. Supplier Invoice Portal" autocomplete="off" />
+      <p class="hint">Short and memorable. Will appear as the document title.</p>
+      <p class="err-msg" id="err-name">Please give this project a name before generating.</p>
+    </div>
+
+    <div class="field">
+      <label for="requester">Requested by</label>
+      <input type="text" id="requester" placeholder="e.g. Sarah (CFO), Finance team, Q2 planning session" autocomplete="off" />
+      <p class="hint">Name, team, or origin of the request. Helps set business context.</p>
+    </div>
+
+    <div class="field">
+      <label for="oneLiner">One-line description <span class="req">*</span></label>
+      <input type="text" id="oneLiner" placeholder="e.g. A self-service portal for suppliers to submit and track invoices" autocomplete="off" />
+      <p class="hint">Finish the sentence: "This project is…" — one sentence, even if rough.</p>
+      <p class="err-msg" id="err-oneliner">A one-line description is needed to generate the prompt.</p>
+    </div>
+  </div>
+
+  <!-- ── Section 2: Problem & why ──────────────────────────── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-num">02</span>
+      <span class="card-title">The problem &amp; why</span>
+    </div>
+
+    <div class="field">
+      <label for="problem">What problem does this solve?</label>
+      <textarea id="problem" placeholder="e.g. Suppliers currently email invoices manually. The finance team re-keys them into SAP, causing errors and delays. We're missing payment deadlines and straining supplier relationships."></textarea>
+      <p class="hint">Describe the pain, not the solution. Messy notes are fine — Claude will tidy up.</p>
+    </div>
+
+    <div class="field">
+      <label for="success">What does success look like?</label>
+      <textarea id="success" placeholder="e.g. 80% of invoices submitted digitally within 3 months. Finance team spends under 2 hours/week on invoice chasing. Zero missed payment deadlines."></textarea>
+      <p class="hint">Outcomes, not features. Metrics if you have them, vibes if you don't.</p>
+    </div>
+  </div>
+
+  <!-- ── Section 3: Who uses it ────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-num">03</span>
+      <span class="card-title">Who uses it</span>
+    </div>
+
+    <div class="field">
+      <label for="users">Users &amp; roles</label>
+      <textarea id="users" placeholder="e.g. External suppliers (~200 companies of varying size). Internal finance team (~8 people, daily users). Procurement managers (~5 people, occasional approvers). Finance controller who approves large invoices."></textarea>
+      <p class="hint">Who are the human actors? Include external users, internal staff, and admins.</p>
+    </div>
+
+    <div class="field">
+      <label for="keyActions">Key actions they need to perform</label>
+      <textarea id="keyActions" placeholder="e.g. Suppliers: upload invoice, track payment status, get notifications. Finance: review, approve/reject, sync to SAP. Admins: manage supplier accounts."></textarea>
+      <p class="hint">What must each role actually do? Bullet points are fine.</p>
+    </div>
+  </div>
+
+  <!-- ── Section 4: Constraints & context ─────────────────── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-num">04</span>
+      <span class="card-title">Constraints &amp; context</span>
+    </div>
+
+    <div class="field">
+      <label for="systems">Existing systems to integrate with</label>
+      <textarea id="systems" placeholder="e.g. SAP S/4HANA (ERP, read POs + write approved invoices via API). Azure AD (SSO for internal users via SAML). Microsoft Exchange (transactional email notifications)."></textarea>
+      <p class="hint">Tech systems, databases, auth providers, APIs we must connect to.</p>
+    </div>
+
+    <div class="field">
+      <label for="constraints">Hard constraints &amp; deadlines</label>
+      <textarea id="constraints" placeholder="e.g. GDPR compliance required. Go-live before September 30. Can't change the SAP data model — read/write via existing API only. Budget ~€80k."></textarea>
+      <p class="hint">Rules we can't break: compliance, deadlines, budget, technical no-go zones.</p>
+    </div>
+
+    <div class="field">
+      <label for="outOfScope">Explicitly out of scope</label>
+      <textarea id="outOfScope" placeholder="e.g. Payment processing stays in SAP. Supplier onboarding is a separate project. No mobile app for v1. No AI invoice parsing in v1."></textarea>
+      <p class="hint">Being explicit here prevents scope creep in the conception document.</p>
+    </div>
+  </div>
+
+  <!-- ── Section 5: Tune the output ───────────────────────── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-num">05</span>
+      <span class="card-title">Tune the output</span>
+    </div>
+
+    <div class="tune-grid">
+      <div class="field" style="margin-bottom:0">
+        <label>Who will read the document?</label>
+        <div class="chips">
+          <div class="chip">
+            <input type="radio" name="audience" id="aud-dev" value="dev" />
+            <label for="aud-dev">Dev team</label>
+          </div>
+          <div class="chip">
+            <input type="radio" name="audience" id="aud-arch" value="architect" />
+            <label for="aud-arch">Architect</label>
+          </div>
+          <div class="chip">
+            <input type="radio" name="audience" id="aud-mixed" value="mixed" checked />
+            <label for="aud-mixed">Mixed biz+tech</label>
+          </div>
+          <div class="chip">
+            <input type="radio" name="audience" id="aud-vendor" value="vendor" />
+            <label for="aud-vendor">External vendor</label>
+          </div>
+        </div>
+        <p class="hint">Shapes language, jargon level, and which sections get the most depth.</p>
+      </div>
+
+      <div class="field" style="margin-bottom:0">
+        <label>Document depth</label>
+        <div class="chips">
+          <div class="chip">
+            <input type="radio" name="depth" id="dep-light" value="lightweight" />
+            <label for="dep-light">Lightweight</label>
+          </div>
+          <div class="chip">
+            <input type="radio" name="depth" id="dep-std" value="standard" checked />
+            <label for="dep-std">Standard</label>
+          </div>
+          <div class="chip">
+            <input type="radio" name="depth" id="dep-deep" value="deep" />
+            <label for="dep-deep">Deep</label>
+          </div>
+        </div>
+        <p class="hint">Lightweight: quick 2-pager. Standard: full doc. Deep: exhaustive with sub-sections.</p>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>How well do you understand this project?</label>
+      <div class="chips">
+        <div class="chip">
+          <input type="radio" name="confidence" id="conf-low" value="barely" onchange="updateConfHint()" />
+          <label for="conf-low">I barely understand it</label>
+        </div>
+        <div class="chip">
+          <input type="radio" name="confidence" id="conf-mid" value="roughly" checked onchange="updateConfHint()" />
+          <label for="conf-mid">I roughly get it</label>
+        </div>
+        <div class="chip">
+          <input type="radio" name="confidence" id="conf-high" value="well" onchange="updateConfHint()" />
+          <label for="conf-high">I understand it well</label>
+        </div>
+      </div>
+      <div class="conf-hint" id="confHint">Claude will fill gaps with reasonable assumptions, label them clearly, and surface unclear areas as open questions.</div>
+    </div>
+
+    <div class="field">
+      <label for="rawNotes">Raw notes / anything else</label>
+      <textarea id="rawNotes" class="tall" placeholder="Paste anything here — meeting notes, Slack snippets, email threads, random thoughts. Claude will make sense of it. More context = better output."></textarea>
+      <p class="hint">No formatting needed. Dump it all in.</p>
+    </div>
+  </div>
+
+  <!-- ── Generate ──────────────────────────────────────────── -->
+  <div class="generate-wrap">
+    <p class="generate-note">Messy, incomplete input is fine — Claude will infer and ask questions for the rest.</p>
+    <button class="btn-generate" onclick="generate()">Generate the prompt &rarr;</button>
+  </div>
+
+  <!-- ── Output ────────────────────────────────────────────── -->
+  <section class="output-section" id="outputSection" aria-live="polite">
+    <div class="output-card">
+      <div class="output-top">
+        <span class="output-heading">Your Claude prompt</span>
+        <div class="output-actions">
+          <button class="btn-action btn-copy" id="btnCopy" onclick="copyPrompt()">Copy to clipboard</button>
+          <button class="btn-action btn-dl" onclick="downloadPrompt()">Download .txt</button>
+        </div>
+      </div>
+      <pre class="output-box" id="outputBox" tabindex="0"></pre>
+      <p class="output-footer">Paste this into a new Claude conversation for best results.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══════════════════════════════ FOOTER ═══════════════════════════════ -->
+
+<footer class="site-footer">
+  Everything runs locally &mdash; nothing is sent anywhere. &nbsp;&middot;&nbsp; Conception Prompt Builder
+</footer>
+
+<!-- ═══════════════════════════════ SCRIPT ═══════════════════════════════ -->
+
+<script>
+'use strict';
+
+// ─── Confidence hint copy ─────────────────────────────────────────────────
+
+const CONF_HINTS = {
+  barely:  'Claude will ask the 3–5 most important clarifying questions up front, proactively infer intent, and label every assumption as "Assumption:" — nothing invented silently.',
+  roughly: 'Claude will fill gaps with reasonable assumptions, label them clearly, and surface unclear areas as open questions.',
+  well:    'Claude will proceed with confidence, focus on depth and completeness, and only surface edge-case questions. Inferences are still labeled as "Assumption:".',
+};
+
+function updateConfHint() {
+  const val = getRadio('confidence');
+  document.getElementById('confHint').textContent = CONF_HINTS[val] || '';
+}
+
+// ─── Fill with example ────────────────────────────────────────────────────
+
+function fillExample() {
+  setVal('projectName', 'Supplier Self-Service Invoice Portal');
+  setVal('requester',   'Sarah Chen (CFO), Finance team — raised in Q1 planning');
+  setVal('oneLiner',    'A web portal that lets external suppliers submit, track, and manage their invoices directly, integrated with SAP S/4HANA and Azure AD');
+  setVal('problem',
+    'Suppliers currently send invoices by email (sometimes by post). The finance team manually re-keys every invoice into SAP S/4HANA — around 120 invoices per month. This causes transcription errors (roughly 8% error rate), delays payment processing, and generates constant back-and-forth to fix missing data.\n\nWe are missing early-payment discounts and receiving complaints from key suppliers about late payments. The finance team wastes an estimated 15 hours per week on invoice admin.'
+  );
+  setVal('success',
+    'At least 80% of invoices submitted digitally within 3 months of go-live.\nFinance team invoice-admin time drops below 3 hours per week.\nError rate on invoice data below 1%.\nZero missed early-payment discount windows.\nSuppliers rate the portal 4 out of 5 or higher in a post-launch survey.'
+  );
+  setVal('users',
+    'External suppliers (~200 active companies, varying technical literacy — from large multinationals to small family businesses).\nInternal finance team (~8 people, daily users).\nProcurement managers (~5 people, occasional approvers for PO-linked invoices).\nFinance controller (1 person, approves invoices above €50k).\nIT admin (1–2 people, manages supplier accounts and internal user permissions).'
+  );
+  setVal('keyActions',
+    'Suppliers: register or log in with company email, create a new invoice (upload PDF + fill in structured line items), link invoice to a Purchase Order number, track invoice status (submitted / under review / approved / paid), receive email notifications on status changes, download remittance advice.\n\nFinance team: review incoming invoices, match to POs in SAP, approve or reject with a comment, trigger SAP posting, run a weekly invoice status report.\n\nProcurement managers: view invoices linked to their POs, flag discrepancies to finance.\n\nFinance controller: approve high-value invoices (>€50k), see full audit trail.\n\nIT admin: create and deactivate supplier accounts, manage internal user roles.'
+  );
+  setVal('systems',
+    'SAP S/4HANA (core ERP — must read PO data and write approved invoices back; access via existing REST API, no direct DB access, no schema changes).\nAzure Active Directory (SSO for all internal users via SAML 2.0; suppliers use email + password with optional MFA).\nExisting supplier master data in SAP (company name, IBAN, VAT number — readable, not writable from the portal).\nMicrosoft Exchange / Outlook (transactional email notifications).'
+  );
+  setVal('constraints',
+    'GDPR compliance is mandatory — invoice data contains personal and company financial data; must have data retention policy and audit logs.\nHard go-live deadline: 30 September (before fiscal year close).\nSAP integration must use the existing REST API — no direct DB access, no schema changes.\nEstimated budget: €80k for build + first year of hosting.\nAccessibility: WCAG 2.1 AA minimum (several key suppliers have accessibility requirements in their procurement policies).'
+  );
+  setVal('outOfScope',
+    'Payment processing and scheduling (stays entirely in SAP).\nSupplier onboarding / KYC (separate project, handled by Procurement).\nMobile native app (responsive web only for v1).\nAI/ML invoice parsing or OCR (explicitly a v2 item).\nAny system integration beyond SAP and Azure AD.\nMulti-currency beyond EUR and USD.\nSelf-service password reset for suppliers (IT handles this for now).'
+  );
+
+  setRadio('audience',    'mixed');
+  setRadio('depth',       'standard');
+  setRadio('confidence',  'roughly');
+  updateConfHint();
+
+  setVal('rawNotes',
+    'From a Slack message with Sarah (2024-03-15): "we need this before year-end close, the SAP team said the API is ready but hasn\'t been tested properly yet — might be issues there"\n\nFrom meeting notes: Legal flagged that we need to store invoices for 10 years per local tax law. Also mentioned that some suppliers are very small businesses that might struggle with a complex portal — keep it simple.\n\nOpen question I haven\'t resolved yet: do suppliers need to be able to submit a credit note or reverse a submitted invoice? Finance said "probably yes but we\'ll figure out the detail later."\n\nIT mentioned: they want to use Azure hosting since we already have an enterprise agreement — would be good to lean into that.'
+  );
+
+  clearErrors();
+  document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+
+function setVal(id, val) {
+  document.getElementById(id).value = val;
+}
+
+function getVal(id) {
+  return (document.getElementById(id).value || '').trim();
+}
+
+function getRadio(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : '';
+}
+
+function setRadio(name, val) {
+  const el = document.querySelector(`input[name="${name}"][value="${val}"]`);
+  if (el) el.checked = true;
+}
+
+function clearErrors() {
+  ['projectName','oneLiner'].forEach(id => {
+    document.getElementById(id).classList.remove('invalid');
+  });
+  document.getElementById('err-name').style.display    = 'none';
+  document.getElementById('err-oneliner').style.display = 'none';
+}
+
+// ─── Prompt builder ───────────────────────────────────────────────────────
+
+let _prompt = '';
+
+function buildAudienceInstruction(aud) {
+  const map = {
+    dev:       'AUDIENCE: The development team. Favour technical precision. Include implementation-relevant details, data model hints, and API contract considerations. Business context should be present but kept concise.',
+    architect: 'AUDIENCE: A solution architect. Emphasise architecture decisions, integration patterns, technology choices with rationale, and non-functional requirements. Include a thorough technical design section with alternatives considered.',
+    mixed:     'AUDIENCE: A mixed business and technical audience. Write so that business stakeholders can understand the what and why, and technical stakeholders can understand the how. Avoid unexplained jargon. The Executive Summary must be readable by a non-technical executive.',
+    vendor:    'AUDIENCE: An external vendor or agency. Be fully self-contained — the reader has no internal company context. Define all acronyms, briefly explain the business domain, and be explicit about integration constraints, security standards, and delivery expectations.',
+  };
+  return map[aud] || map.mixed;
+}
+
+function buildDepthInstruction(depth) {
+  const map = {
+    lightweight: 'DOCUMENT DEPTH: Lightweight. Target a concise 2–3 page document. Prefer bullet points over prose. Prioritise clarity and speed; do not pad.',
+    standard:    'DOCUMENT DEPTH: Standard. Produce a complete, well-structured conception document. Use prose for context-heavy sections and bullets/tables for lists. Aim for thoroughness without padding.',
+    deep:        'DOCUMENT DEPTH: Deep. Produce an exhaustive conception document. Include detailed sub-sections, multiple acceptance criteria per story, technical design alternatives with trade-offs, measurable NFR targets, and a thorough risk register. This document will serve as the primary reference for the entire project team.',
+  };
+  return map[depth] || map.standard;
+}
+
+function buildConfidenceInstruction(conf) {
+  if (conf === 'barely') {
+    return `CONFIDENCE LEVEL: The product owner barely understands this project. Apply these rules:
+1. Before writing the document body, list the 3–5 most important clarifying questions under a heading "Key Questions Before We Start". Be specific and actionable.
+2. Proactively infer intent from the information provided. Fill gaps with the most reasonable interpretation.
+3. Label every inference or invented detail as "Assumption:" inline in the text. Never silently invent company-specific facts (system names, team sizes, compliance regimes, org structures).
+4. Use plain, accessible language throughout; do not assume shared technical context.
+5. The Open Questions section should be especially thorough — help the product owner surface what they don't yet know they need to decide.`;
+  }
+  if (conf === 'well') {
+    return `CONFIDENCE LEVEL: The product owner understands this project well. Apply these rules:
+1. Proceed with confidence; focus on depth, completeness, and precision.
+2. Still label any inferences or gap-fillers as "Assumption:".
+3. The Open Questions section should focus on edge cases, technical trade-offs, and decisions that require stakeholder input — not fundamentals.
+4. You may use appropriate technical terminology for the stated audience.`;
+  }
+  return `CONFIDENCE LEVEL: The product owner roughly understands this project. Apply these rules:
+1. Fill gaps with reasonable assumptions and label them "Assumption:" inline.
+2. Highlight unclear or underdefined areas in the Open Questions section.
+3. Do not silently invent company-specific facts — label all inferences.
+4. Balance technical rigour with business clarity.`;
+}
+
+function buildInputBlock() {
+  const lines = [];
+  const add = (label, id) => {
+    const v = getVal(id);
+    if (v) lines.push(`${label}:\n${v}`);
+  };
+
+  lines.push(`PROJECT NAME: ${getVal('projectName')}`);
+  if (getVal('requester'))  lines.push(`REQUESTED BY: ${getVal('requester')}`);
+  lines.push(`ONE-LINE DESCRIPTION: ${getVal('oneLiner')}`);
+  add('PROBLEM BEING SOLVED',            'problem');
+  add('WHAT SUCCESS LOOKS LIKE',         'success');
+  add('USERS & ROLES',                   'users');
+  add('KEY ACTIONS BY ROLE',             'keyActions');
+  add('EXISTING SYSTEMS TO INTEGRATE',   'systems');
+  add('HARD CONSTRAINTS & DEADLINES',    'constraints');
+  add('EXPLICITLY OUT OF SCOPE',         'outOfScope');
+  add('RAW NOTES / ADDITIONAL CONTEXT',  'rawNotes');
+
+  return lines.join('\n\n');
+}
+
+function buildPrompt() {
+  const name       = getVal('projectName');
+  const audience   = getRadio('audience')   || 'mixed';
+  const depth      = getRadio('depth')      || 'standard';
+  const confidence = getRadio('confidence') || 'roughly';
+
+  return `You are acting as a senior product analyst and solution architect. Your task is to write a comprehensive combined functional and technical conception document for an IT team, based on raw notes from a product owner.
+
+${buildAudienceInstruction(audience)}
+
+${buildDepthInstruction(depth)}
+
+${buildConfidenceInstruction(confidence)}
+
+────────────────────────────────────────────
+DOCUMENT STRUCTURE
+────────────────────────────────────────────
+
+Produce a single, well-formatted Markdown document with the following sections in this order:
+
+1. **Executive Summary**
+   A concise overview: what the project is, why it matters, and what success looks like. Readable by a non-technical executive in under 2 minutes.
+
+2. **Problem & Objectives**
+   The root problem being addressed, business drivers, and 3–5 measurable objectives (SMART format where possible).
+
+3. **Scope**
+   Two clearly labelled sub-sections:
+   — In-scope: what this project covers
+   — Out-of-scope: what is explicitly excluded and why
+
+4. **Users & Roles**
+   A table or structured list of all user personas and roles, their primary goals, and their level of technical sophistication.
+
+5. **Functional Requirements**
+   Written as user stories: *As a [role], I want [action] so that [outcome].*
+   Each user story must include at least 2 acceptance criteria in Given / When / Then format.
+   Group stories by feature area or role.
+
+6. **Functional Flow**
+   A narrative description of the primary end-to-end user journey, followed by a Mermaid flowchart (\`\`\`mermaid code block).
+   The flowchart must cover at minimum: entry point → key decision points → happy path → error/rejection paths → completion.
+
+7. **High-Level Technical Design**
+   Architecture overview covering: system components, integration points, data flow, and technology recommendations.
+   Include a Mermaid architecture diagram (\`\`\`mermaid with graph LR or C4-style notation).
+   Technology suggestions must be framed as recommendations, not decisions, unless the product owner has specified them as hard constraints.
+
+8. **Non-Functional Requirements**
+   Cover at minimum: performance (load, response time targets), security (auth model, data protection, audit logging), scalability, availability/uptime, compliance (GDPR, accessibility, sector-specific), and maintainability.
+   Use measurable targets wherever possible.
+
+9. **Risks & Dependencies**
+   A table with: Risk / Dependency | Likelihood (H/M/L) | Impact (H/M/L) | Mitigation.
+   Cover both technical risks (integration unknowns, third-party dependencies) and business risks (adoption, timeline, budget).
+
+10. **Open Questions**
+    A numbered list of specific questions the product owner must resolve before or during development.
+    Be precise — not "clarify scope" but "Does the portal need to support supplier credit notes in v1? This was mentioned in raw notes as uncertain."
+
+11. **Assumptions Made**
+    A numbered list of every assumption made while writing this document. No silent inventions — if you filled a gap, list it here.
+
+────────────────────────────────────────────
+INPUT FROM THE PRODUCT OWNER
+────────────────────────────────────────────
+
+${buildInputBlock()}
+
+────────────────────────────────────────────
+
+Now write the full conception document in clean Markdown, ready to be shared with the project team.
+Begin with the document title: # Conception Document: ${name}`;
+}
+
+// ─── Generate ─────────────────────────────────────────────────────────────
+
+function generate() {
+  clearErrors();
+  let ok = true;
+
+  if (!getVal('projectName')) {
+    document.getElementById('projectName').classList.add('invalid');
+    document.getElementById('err-name').style.display = 'block';
+    ok = false;
+  }
+
+  if (!getVal('oneLiner')) {
+    document.getElementById('oneLiner').classList.add('invalid');
+    document.getElementById('err-oneliner').style.display = 'block';
+    ok = false;
+  }
+
+  if (!ok) {
+    document.getElementById('projectName').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  _prompt = buildPrompt();
+
+  const box = document.getElementById('outputBox');
+  box.textContent = _prompt;
+
+  const section = document.getElementById('outputSection');
+  section.classList.add('visible');
+
+  // Reset copy button
+  const btn = document.getElementById('btnCopy');
+  btn.textContent = 'Copy to clipboard';
+  btn.classList.remove('done');
+
+  setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+}
+
+// ─── Copy ─────────────────────────────────────────────────────────────────
+
+function copyPrompt() {
+  if (!_prompt) return;
+
+  const succeed = () => {
+    const btn = document.getElementById('btnCopy');
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('done');
+    setTimeout(() => {
+      btn.textContent = 'Copy to clipboard';
+      btn.classList.remove('done');
+    }, 2800);
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(_prompt).then(succeed).catch(fallbackCopy);
+  } else {
+    fallbackCopy();
+    succeed();
+  }
+}
+
+function fallbackCopy() {
+  const ta = document.createElement('textarea');
+  ta.value = _prompt;
+  ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try { document.execCommand('copy'); } catch (_) {}
+  document.body.removeChild(ta);
+}
+
+// ─── Download ─────────────────────────────────────────────────────────────
+
+function downloadPrompt() {
+  if (!_prompt) return;
+  const slug = (getVal('projectName') || 'conception-prompt')
+    .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 60);
+  const blob = new Blob([_prompt], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: `${slug}-prompt.txt` });
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>

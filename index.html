@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Conception Prompt Builder</title>
+  <title>Actor Flow Builder</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,600&family=Spline+Sans+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,1006 +24,1151 @@
       --text-3:        #A89880;
       --border:        #E8E2D9;
       --border-hover:  #D4CABF;
-      --shadow-sm:     0 1px 4px rgba(44,36,22,0.05);
+      --green:         #3e9a68;
+      --green-bg:      #edf7f2;
       --shadow-md:     0 2px 14px rgba(44,36,22,0.07);
       --radius-card:   18px;
       --radius-input:  10px;
-      --font-display:  'Fraunces', Georgia, 'Times New Roman', serif;
-      --font-body:     'Spline Sans Mono', 'Courier New', Courier, monospace;
+      --font-display:  'Fraunces', Georgia, serif;
+      --font-body:     'Spline Sans Mono', 'Courier New', monospace;
     }
 
     html { font-size: 16px; scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 0.875rem; line-height: 1.65; min-height: 100vh; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-body);
-      font-size: 0.875rem;
-      line-height: 1.65;
-      min-height: 100vh;
-    }
-
-    /* ── Header ─────────────────────────────────────────────── */
-
+    /* ── Header ──────────────────────────────────────────── */
     .site-header {
-      background: #1E1A14;
-      color: #EDE8E0;
-      padding: 3.5rem 2rem 3rem;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
+      background: #1E1A14; color: #EDE8E0;
+      padding: 3rem 2rem 2.5rem; text-align: center; position: relative; overflow: hidden;
     }
-
     .site-header::before {
-      content: '';
-      position: absolute;
-      inset: 0;
+      content: ''; position: absolute; inset: 0;
       background: radial-gradient(ellipse 80% 60% at 50% 110%, rgba(194,91,42,0.18) 0%, transparent 70%);
       pointer-events: none;
     }
+    .eyebrow { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.85rem; }
+    .site-header h1 { font-family: var(--font-display); font-size: clamp(1.75rem, 5vw, 3rem); font-weight: 600; line-height: 1.1; margin-bottom: 0.85rem; }
+    .site-header h1 em { font-style: italic; font-weight: 300; color: #C8B8A0; }
+    .site-header p { font-size: 0.8rem; color: var(--text-3); max-width: 56ch; margin: 0 auto; line-height: 1.7; }
 
-    .eyebrow {
-      font-family: var(--font-body);
-      font-size: 0.68rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 1rem;
+    /* ── How it works bar ────────────────────────────────── */
+    .how-bar {
+      background: #261E14; border-bottom: 1px solid #332C22;
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 0;
     }
-
-    .site-header h1 {
-      font-family: var(--font-display);
-      font-size: clamp(2rem, 5.5vw, 3.5rem);
-      font-weight: 600;
-      line-height: 1.1;
-      margin-bottom: 1rem;
-      letter-spacing: -0.01em;
+    .how-step {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.85rem 1.5rem; border-right: 1px solid #332C22;
+      font-size: 0.72rem; color: #A89880;
     }
-
-    .site-header h1 em {
-      font-style: italic;
-      font-weight: 300;
-      color: #C8B8A0;
+    .how-step:last-child { border-right: none; }
+    .how-n {
+      width: 20px; height: 20px; background: var(--accent); color: #fff;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 700; flex-shrink: 0;
     }
+    .how-step strong { color: #EDE8E0; }
 
-    .site-header p {
-      font-size: 0.82rem;
-      color: var(--text-3);
-      max-width: 52ch;
-      margin: 0 auto;
-      line-height: 1.7;
+    /* ── Layout ──────────────────────────────────────────── */
+    .container { max-width: 820px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    /* ── Top bar ─────────────────────────────────────────── */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; gap: 0.75rem; flex-wrap: wrap; }
+    .top-bar-right { display: flex; gap: 0.55rem; align-items: center; flex-wrap: wrap; }
+
+    .btn-projects {
+      font-family: var(--font-body); font-size: 0.75rem; font-weight: 500;
+      color: #fff; background: var(--text); border: 1.5px solid var(--text);
+      border-radius: 8px; padding: 0.45rem 1rem; cursor: pointer;
+      transition: background 0.15s; display: inline-flex; align-items: center; gap: 0.45rem;
     }
+    .btn-projects:hover { background: #453A2A; }
+    .proj-count { background: var(--accent); color: #fff; font-size: 0.65rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 99px; line-height: 1.4; display: none; }
+    .proj-count.visible { display: inline-block; }
 
-    /* ── Layout ─────────────────────────────────────────────── */
-
-    .container {
-      max-width: 780px;
-      margin: 0 auto;
-      padding: 2.5rem 1.5rem 5rem;
+    .btn-top {
+      font-family: var(--font-body); font-size: 0.75rem; font-weight: 500;
+      border-radius: 8px; padding: 0.45rem 1rem; cursor: pointer; transition: all 0.15s; border: 1.5px solid;
     }
+    .btn-top-ghost { color: var(--text-2); background: var(--card-bg); border-color: var(--border); }
+    .btn-top-ghost:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-faint); }
+    .btn-top-accent { color: var(--accent); background: var(--accent-faint); border-color: var(--accent-light); }
+    .btn-top-accent:hover { background: var(--accent-light); border-color: var(--accent); }
+    .btn-new { display: none; color: var(--text-2); background: transparent; border-color: var(--border); }
+    .btn-new.visible { display: inline-flex; align-items: center; }
+    .btn-new:hover { border-color: #d94f3d; color: #d94f3d; background: transparent; }
 
-    /* ── Top bar ─────────────────────────────────────────────── */
+    /* ── Cards ───────────────────────────────────────────── */
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-md); padding: 2rem; margin-bottom: 1.5rem; }
+    .card-header { display: flex; align-items: baseline; gap: 0.8rem; margin-bottom: 1.75rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+    .card-num { font-family: var(--font-display); font-size: 0.78rem; font-weight: 700; color: var(--accent); background: var(--accent-light); padding: 0.18rem 0.55rem; border-radius: 6px; flex-shrink: 0; }
+    .card-title { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+    .card-tag { font-family: var(--font-body); font-size: 0.68rem; font-weight: 600; padding: 0.18rem 0.55rem; border-radius: 99px; margin-left: 0.25rem; }
+    .tag-green { background: var(--green-bg); color: var(--green); }
 
-    .top-bar {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      margin-bottom: 1.75rem;
-    }
-
-    .btn-fill-example {
-      font-family: var(--font-body);
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: var(--text-2);
-      background: var(--card-bg);
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      padding: 0.45rem 1rem;
-      cursor: pointer;
-      transition: color 0.15s, border-color 0.15s, background 0.15s;
-    }
-
-    .btn-fill-example:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-faint);
-    }
-
-    /* ── Cards ─────────────────────────────────────────────── */
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-md);
-      padding: 2rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .card-header {
-      display: flex;
-      align-items: baseline;
-      gap: 0.8rem;
-      margin-bottom: 1.75rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .card-num {
-      font-family: var(--font-display);
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--accent);
-      background: var(--accent-light);
-      padding: 0.18rem 0.55rem;
-      border-radius: 6px;
-      letter-spacing: 0.02em;
-      flex-shrink: 0;
-      line-height: 1.4;
-    }
-
-    .card-title {
-      font-family: var(--font-display);
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--text);
-      letter-spacing: -0.01em;
-    }
-
-    /* ── Form fields ─────────────────────────────────────────── */
-
-    .field {
-      margin-bottom: 1.4rem;
-    }
-
+    /* ── Form ────────────────────────────────────────────── */
+    .field { margin-bottom: 1.4rem; }
     .field:last-child { margin-bottom: 0; }
-
-    .field > label {
-      display: block;
-      font-size: 0.78rem;
-      font-weight: 500;
-      color: var(--text);
-      margin-bottom: 0.4rem;
-      letter-spacing: 0.015em;
-    }
-
+    .field > label { display: block; font-size: 0.78rem; font-weight: 500; color: var(--text); margin-bottom: 0.4rem; }
     .req { color: var(--accent); margin-left: 2px; }
+    .hint { font-size: 0.71rem; color: var(--text-2); margin-top: 0.35rem; line-height: 1.5; }
+    .err-msg { font-size: 0.72rem; color: #d94f3d; margin-top: 0.3rem; display: none; }
 
-    .hint {
-      font-size: 0.71rem;
-      color: var(--text-2);
-      margin-top: 0.35rem;
-      line-height: 1.5;
+    input[type="text"], textarea, select {
+      display: block; width: 100%; background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--radius-input); padding: 0.65rem 0.9rem;
+      font-family: var(--font-body); font-size: 0.83rem; color: var(--text);
+      line-height: 1.55; transition: border-color 0.15s, box-shadow 0.15s; outline: none; resize: vertical;
     }
+    input[type="text"]::placeholder, textarea::placeholder { color: var(--text-3); }
+    input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(194,91,42,0.13); }
+    input.invalid, textarea.invalid { border-color: #d94f3d; box-shadow: 0 0 0 3px rgba(217,79,61,0.1); }
+    textarea { min-height: 80px; }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A6E5F' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.9rem center; padding-right: 2.2rem; cursor: pointer; }
 
-    .err-msg {
-      font-size: 0.72rem;
-      color: #d94f3d;
-      margin-top: 0.3rem;
-      display: none;
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    @media (max-width: 520px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ── Actors ──────────────────────────────────────────── */
+    .actors-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.25rem; }
+    .actor-card { background: var(--bg); border: 1.5px solid var(--border); border-radius: 14px; padding: 1.25rem; transition: border-color 0.15s; }
+    .actor-card:hover { border-color: var(--border-hover); }
+    .actor-card-top { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+    .actor-badge { font-family: var(--font-display); font-size: 0.7rem; font-weight: 700; color: var(--text-2); background: var(--border); padding: 0.15rem 0.5rem; border-radius: 5px; flex-shrink: 0; }
+    .actor-name-input { flex: 1; font-weight: 600; font-size: 0.88rem; background: transparent; border: none; border-bottom: 1.5px solid var(--border); border-radius: 0; padding: 0.25rem 0; color: var(--text); box-shadow: none !important; outline: none; }
+    .actor-name-input:focus { border-bottom-color: var(--accent); }
+    .actor-name-input::placeholder { color: var(--text-3); font-weight: 400; }
+    .btn-del-actor { background: none; border: none; cursor: pointer; color: var(--text-3); font-size: 1rem; padding: 0.2rem 0.4rem; border-radius: 5px; transition: color 0.15s, background 0.15s; flex-shrink: 0; }
+    .btn-del-actor:hover { color: #d94f3d; background: #fdf2f1; }
+    .actor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+    @media (max-width: 520px) { .actor-grid { grid-template-columns: 1fr; } }
+    .actor-grid .field { margin-bottom: 0; }
+    .actor-grid textarea { min-height: 68px; font-size: 0.77rem; }
+    .actor-status { font-size: 0.7rem; color: var(--text-3); margin-top: 0.5rem; }
+
+    .btn-add-actor { display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-family: var(--font-body); font-size: 0.78rem; font-weight: 500; color: var(--accent); background: var(--accent-faint); border: 1.5px dashed var(--accent-light); border-radius: 10px; padding: 0.6rem 1.25rem; cursor: pointer; width: 100%; transition: background 0.15s; }
+    .btn-add-actor:hover { background: var(--accent-light); border-color: var(--accent); }
+
+    /* ── Generate + Paste (Section 04) ──────────────────── */
+    .workflow-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-md); overflow: hidden; margin-bottom: 1.5rem; }
+    .wf-row { display: flex; gap: 0; border-bottom: 1px solid var(--border); }
+    .wf-row:last-child { border-bottom: none; }
+    .wf-index { width: 52px; flex-shrink: 0; background: var(--accent-faint); display: flex; align-items: flex-start; justify-content: center; padding-top: 1.4rem; }
+    .wf-circle { width: 26px; height: 26px; background: var(--accent); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 0.8rem; }
+    .wf-content { flex: 1; padding: 1.4rem 1.5rem; }
+    .wf-title { font-family: var(--font-display); font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 0.35rem; }
+    .wf-desc { font-size: 0.75rem; color: var(--text-2); line-height: 1.6; margin-bottom: 0.9rem; }
+    .wf-desc a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted var(--accent); }
+    .wf-desc a:hover { opacity: 0.75; }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-family: var(--font-display); font-size: 1rem; font-style: italic; font-weight: 600;
+      color: #fff; background: var(--accent); border: none; border-radius: 10px;
+      padding: 0.75rem 1.75rem; cursor: pointer;
+      box-shadow: 0 3px 14px rgba(194,91,42,0.28);
+      transition: background 0.15s, transform 0.12s;
     }
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-primary.green { background: var(--green); box-shadow: 0 3px 14px rgba(62,154,104,0.28); }
+    .btn-primary.green:hover { background: #2e7d52; }
 
-    input[type="text"],
-    textarea {
-      display: block;
-      width: 100%;
-      background: var(--bg);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-input);
-      padding: 0.65rem 0.9rem;
-      font-family: var(--font-body);
-      font-size: 0.83rem;
-      color: var(--text);
-      line-height: 1.55;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      outline: none;
-      resize: vertical;
+    /* ── Prompt output ───────────────────────────────────── */
+    .prompt-box-wrap { display: none; margin-top: 1rem; }
+    .prompt-box-wrap.visible { display: block; }
+    .prompt-box-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem; }
+    .prompt-box-label { font-size: 0.74rem; font-weight: 500; color: var(--text); }
+    .btn-copy-prompt { font-family: var(--font-body); font-size: 0.72rem; font-weight: 600; color: #fff; background: var(--accent); border: none; border-radius: 7px; padding: 0.38rem 1rem; cursor: pointer; transition: background 0.15s; }
+    .btn-copy-prompt:hover { background: var(--accent-hover); }
+    .btn-copy-prompt.done { background: var(--green); }
+    .prompt-box {
+      background: #1C1813; border: 1px solid #332C22; border-radius: 12px;
+      padding: 1.25rem; font-family: var(--font-body); font-size: 0.72rem;
+      line-height: 1.7; color: #E4DAC9; white-space: pre-wrap; word-break: break-word;
+      max-height: 380px; overflow-y: auto;
+      scrollbar-width: thin; scrollbar-color: #453A2A transparent;
     }
+    .prompt-box::-webkit-scrollbar { width: 5px; }
+    .prompt-box::-webkit-scrollbar-thumb { background: #453A2A; border-radius: 99px; }
 
-    input[type="text"]::placeholder,
-    textarea::placeholder { color: var(--text-3); }
-
-    input[type="text"]:focus,
-    textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(194,91,42,0.13);
-    }
-
-    input[type="text"].invalid,
-    textarea.invalid {
-      border-color: #d94f3d;
-      box-shadow: 0 0 0 3px rgba(217,79,61,0.1);
-    }
-
-    textarea { min-height: 84px; }
-    textarea.tall { min-height: 130px; }
-
-    /* ── Chip selectors ─────────────────────────────────────── */
-
-    .chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.45rem;
-      margin-top: 0.4rem;
-    }
-
-    .chip {
-      position: relative;
-    }
-
-    .chip input[type="radio"] {
-      position: absolute;
-      width: 1px; height: 1px;
-      opacity: 0;
-    }
-
-    .chip label {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.42rem 0.95rem;
-      border: 1.5px solid var(--border);
-      border-radius: 99px;
-      font-family: var(--font-body);
-      font-size: 0.78rem;
-      font-weight: 400;
-      color: var(--text-2);
-      cursor: pointer;
-      transition: all 0.13s;
-      white-space: nowrap;
-      margin-bottom: 0;
-      letter-spacing: 0;
-      user-select: none;
-    }
-
-    .chip input:checked + label {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-      font-weight: 500;
-    }
-
-    .chip label:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-faint);
-    }
-
-    .chip input:checked + label:hover {
-      background: var(--accent-hover);
-      border-color: var(--accent-hover);
-      color: #fff;
-    }
-
-    /* Focus ring for keyboard nav */
-    .chip input:focus-visible + label {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-
-    /* Confidence hint bubble */
-    .conf-hint {
-      margin-top: 0.75rem;
-      padding: 0.6rem 0.9rem;
-      background: var(--accent-faint);
-      border-left: 3px solid var(--accent);
-      border-radius: 0 8px 8px 0;
-      font-size: 0.72rem;
-      color: var(--text-2);
-      line-height: 1.5;
-      transition: opacity 0.2s;
-    }
-
-    /* ── Tune section two-col grid ───────────────────────────── */
-
-    .tune-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-      margin-bottom: 1.4rem;
-    }
-
-    @media (max-width: 520px) {
-      .tune-grid { grid-template-columns: 1fr; }
-    }
-
-    /* ── Generate button ─────────────────────────────────────── */
-
-    .generate-wrap {
-      text-align: center;
-      padding: 0.5rem 0 0.25rem;
-    }
-
-    .generate-note {
-      font-size: 0.72rem;
-      color: var(--text-3);
-      margin-bottom: 1rem;
-    }
-
-    .btn-generate {
-      font-family: var(--font-display);
-      font-size: 1.15rem;
-      font-style: italic;
-      font-weight: 600;
-      color: #fff;
-      background: var(--accent);
-      border: none;
-      border-radius: 12px;
-      padding: 0.9rem 2.75rem;
-      cursor: pointer;
-      box-shadow: 0 4px 18px rgba(194,91,42,0.32);
-      transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
-      letter-spacing: 0.005em;
-    }
-
-    .btn-generate:hover {
-      background: var(--accent-hover);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 22px rgba(194,91,42,0.38);
-    }
-
-    .btn-generate:active { transform: translateY(0); }
-
-    /* ── Output section ─────────────────────────────────────── */
-
-    .output-section {
-      display: none;
-      margin-top: 2.5rem;
-    }
-
+    /* ── Output tabs ─────────────────────────────────────── */
+    .output-section { display: none; margin-top: 2rem; }
     .output-section.visible { display: block; }
+    .output-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-md); overflow: hidden; }
+    .output-hd { padding: 1.5rem 2rem 0; border-bottom: 1px solid var(--border); }
+    .output-hd-title { font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 1rem; }
+    .tabs { display: flex; overflow-x: auto; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { font-family: var(--font-body); font-size: 0.76rem; font-weight: 500; color: var(--text-2); background: transparent; border: none; padding: 0.7rem 1.1rem; cursor: pointer; white-space: nowrap; border-bottom: 2.5px solid transparent; transition: color 0.15s, border-color 0.15s; display: flex; align-items: center; gap: 0.4rem; }
+    .tab:hover { color: var(--accent); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+    .tab-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-3); flex-shrink: 0; }
+    .tab-dot.done { background: var(--green); }
+    .tab-dot.error { background: #d94f3d; }
+    .tab-panels { padding: 2rem; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
 
-    .output-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-md);
-      padding: 1.75rem 2rem 2rem;
-    }
+    .panel-placeholder { text-align: center; padding: 2.5rem 1rem; color: var(--text-3); font-size: 0.76rem; }
+    .panel-error-box { background: #fdf2f1; border: 1px solid #f5c2be; border-radius: 12px; padding: 1.1rem 1.25rem; font-size: 0.76rem; color: #b71c1c; }
 
-    .output-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      margin-bottom: 1.25rem;
-    }
+    .panel-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-bottom: 0.9rem; flex-wrap: wrap; align-items: center; }
+    .panel-ok-label { font-size: 0.7rem; color: var(--green); flex: 1; }
+    .btn-exp { font-family: var(--font-body); font-size: 0.72rem; font-weight: 500; padding: 0.35rem 0.85rem; border-radius: 7px; cursor: pointer; border: 1.5px solid; transition: all 0.13s; }
+    .btn-exp-svg { background: var(--accent-faint); border-color: var(--accent-light); color: var(--accent); }
+    .btn-exp-svg:hover { background: var(--accent-light); border-color: var(--accent); }
+    .btn-exp-png { background: var(--text); border-color: var(--text); color: #fff; }
+    .btn-exp-png:hover { background: #453A2A; }
 
-    .output-heading {
-      font-family: var(--font-display);
-      font-size: 1.15rem;
-      font-weight: 600;
-      color: var(--text);
-    }
+    .diagram-canvas { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 2rem; overflow-x: auto; text-align: center; }
+    .diagram-canvas svg { max-width: 100%; height: auto; }
 
-    .output-actions {
-      display: flex;
-      gap: 0.55rem;
-      flex-wrap: wrap;
-    }
+    /* ── Projects panel ──────────────────────────────────── */
+    .projects-overlay { position: fixed; inset: 0; background: rgba(44,36,22,0.45); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+    .projects-overlay.visible { opacity: 1; pointer-events: all; }
+    .projects-panel { position: fixed; top: 0; left: 0; bottom: 0; width: 360px; max-width: 92vw; background: var(--card-bg); border-right: 1px solid var(--border); box-shadow: 4px 0 32px rgba(44,36,22,0.12); z-index: 201; display: flex; flex-direction: column; transform: translateX(-100%); transition: transform 0.27s cubic-bezier(0.4,0,0.2,1); }
+    .projects-panel.open { transform: translateX(0); }
+    .pp-hd { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .pp-hd-title { font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; color: var(--text); }
+    .pp-close { background: none; border: none; cursor: pointer; color: var(--text-3); font-size: 1.1rem; padding: 0.25rem; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+    .pp-close:hover { color: var(--text); background: var(--accent-faint); }
+    .pp-list { flex: 1; overflow-y: auto; padding: 1rem; scrollbar-width: thin; }
+    .pp-empty { text-align: center; padding: 3rem 1rem; color: var(--text-3); font-size: 0.76rem; line-height: 1.9; }
+    .pp-empty strong { color: var(--text-2); }
+    .pp-item { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.85rem; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 0.6rem; background: var(--bg); transition: border-color 0.15s; }
+    .pp-item:hover { border-color: var(--border-hover); }
+    .pp-item-info { flex: 1; min-width: 0; }
+    .pp-item-name { display: block; font-size: 0.82rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.3rem; }
+    .pp-item-meta { display: flex; align-items: center; gap: 0.5rem; }
+    .pp-badge { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.1rem 0.45rem; border-radius: 99px; }
+    .badge-draft { background: #F0EDE8; color: var(--text-2); }
+    .badge-done  { background: var(--green-bg); color: var(--green); }
+    .pp-date { font-size: 0.67rem; color: var(--text-3); }
+    .pp-item-btns { display: flex; gap: 0.4rem; flex-shrink: 0; }
+    .pp-btn { font-family: var(--font-body); font-size: 0.7rem; font-weight: 500; padding: 0.28rem 0.65rem; border-radius: 6px; cursor: pointer; border: 1.5px solid; transition: all 0.13s; }
+    .pp-btn-load { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .pp-btn-load:hover { background: var(--accent-hover); }
+    .pp-btn-del { background: transparent; border-color: var(--border); color: var(--text-3); }
+    .pp-btn-del:hover { border-color: #d94f3d; color: #d94f3d; background: #fdf2f1; }
+    .pp-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); flex-shrink: 0; text-align: center; font-size: 0.67rem; color: var(--text-3); line-height: 1.6; }
 
-    .btn-action {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      font-family: var(--font-body);
-      font-size: 0.75rem;
-      font-weight: 500;
-      padding: 0.42rem 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.14s;
-      border: 1.5px solid;
-      line-height: 1;
-    }
+    /* ── Spinner ─────────────────────────────────────────── */
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .btn-copy {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-    }
+    /* ── Toast ───────────────────────────────────────────── */
+    #toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(1.5rem); background: #1E1A14; color: #EDE8E0; font-family: var(--font-body); font-size: 0.78rem; padding: 0.65rem 1.4rem; border-radius: 99px; box-shadow: 0 4px 20px rgba(44,36,22,0.22); opacity: 0; pointer-events: none; transition: opacity 0.22s, transform 0.22s; z-index: 300; white-space: nowrap; }
+    #toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    .btn-copy:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+    /* ── Footer ──────────────────────────────────────────── */
+    .site-footer { text-align: center; padding: 1.5rem; font-size: 0.7rem; color: var(--text-3); border-top: 1px solid var(--border); }
 
-    .btn-copy.done {
-      background: #3e9a68;
-      border-color: #3e9a68;
-    }
+    /* ── Setup card ──────────────────────────────────────── */
+    .setup-conn { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.25rem; }
+    .conn-badge { display: none; align-items: center; gap: 0.35rem; font-size: 0.72rem; padding: 0.2rem 0.7rem; border-radius: 99px; background: var(--green-bg); color: var(--green); font-weight: 600; }
+    .conn-badge.visible { display: inline-flex; }
+    .conn-msg { font-size: 0.74rem; color: var(--text-2); }
+    kbd { font-family: var(--font-body); font-size: 0.72rem; background: var(--border); border: 1px solid var(--border-hover); border-radius: 4px; padding: 0.1rem 0.4rem; }
 
-    .btn-dl {
-      background: transparent;
-      border-color: var(--border);
-      color: var(--text-2);
-    }
+    /* ── Chat bar ────────────────────────────────────────── */
+    .chat-bar { border-top: 1px solid var(--border); padding: 1.5rem 2rem; }
+    .chat-bar-title { font-size: 0.74rem; font-weight: 600; color: var(--text-2); margin-bottom: 0.85rem; letter-spacing: 0.02em; text-transform: uppercase; }
+    .chat-history { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1rem; max-height: 220px; overflow-y: auto; scrollbar-width: thin; }
+    .chat-bubble { font-size: 0.76rem; line-height: 1.55; padding: 0.5rem 0.85rem; border-radius: 10px; max-width: 88%; word-break: break-word; }
+    .chat-bubble-user { align-self: flex-end; background: var(--accent-faint); color: var(--text); border: 1px solid var(--accent-light); }
+    .chat-bubble-ai { align-self: flex-start; background: var(--bg); color: var(--text-2); border: 1px solid var(--border); }
+    .chat-input-row { display: flex; gap: 0.5rem; align-items: center; }
+    .chat-input-row input { flex: 1; min-height: unset; resize: none; }
+    .btn-chat-send { font-family: var(--font-display); font-size: 0.9rem; font-style: italic; font-weight: 600; color: #fff; background: var(--accent); border: none; border-radius: 10px; padding: 0.6rem 1.25rem; cursor: pointer; white-space: nowrap; transition: background 0.15s; flex-shrink: 0; }
+    .btn-chat-send:hover { background: var(--accent-hover); }
+    .btn-chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .btn-dl:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-faint);
-    }
-
-    .output-box {
-      background: #1C1813;
-      border: 1px solid #332C22;
-      border-radius: 12px;
-      padding: 1.5rem 1.5rem;
-      font-family: var(--font-body);
-      font-size: 0.76rem;
-      line-height: 1.7;
-      color: #E4DAC9;
-      white-space: pre-wrap;
-      word-break: break-word;
-      max-height: 560px;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: #453A2A transparent;
-    }
-
-    .output-box::-webkit-scrollbar { width: 6px; }
-    .output-box::-webkit-scrollbar-track { background: transparent; }
-    .output-box::-webkit-scrollbar-thumb { background: #453A2A; border-radius: 99px; }
-
-    .output-footer {
-      font-size: 0.71rem;
-      color: var(--text-3);
-      text-align: center;
-      margin-top: 0.9rem;
-    }
-
-    /* ── Footer ─────────────────────────────────────────────── */
-
-    .site-footer {
-      text-align: center;
-      padding: 1.5rem;
-      font-size: 0.7rem;
-      color: var(--text-3);
-      border-top: 1px solid var(--border);
-    }
-
-    /* ── Responsive ─────────────────────────────────────────── */
+    /* ── Gen progress ────────────────────────────────────── */
+    .gen-progress { display: none; margin-top: 1rem; }
+    .gen-progress.visible { display: block; }
+    .gen-status { font-size: 0.78rem; color: var(--text-2); margin-bottom: 0.5rem; font-weight: 500; }
+    .gen-stream { display: none; background: #1C1813; border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.68rem; color: #9C8E7A; line-height: 1.6; max-height: 90px; overflow: hidden; white-space: pre-wrap; word-break: break-word; }
+    .gen-stream.visible { display: block; }
 
     @media (max-width: 600px) {
-      .card { padding: 1.5rem 1.25rem; }
+      .card, .workflow-card { padding: 1.5rem 1.25rem; }
+      .wf-content { padding: 1.2rem 1.1rem; }
       .container { padding: 1.75rem 1rem 4rem; }
-      .output-card { padding: 1.5rem 1.25rem; }
+      .how-bar { display: none; }
     }
   </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
+<!-- ════════════════════ PROJECTS PANEL ═══════════════════════════ -->
+<div class="projects-overlay" id="projectsOverlay" onclick="closeProjectsPanel()"></div>
+<aside class="projects-panel" id="projectsPanel">
+  <div class="pp-hd">
+    <span class="pp-hd-title">My Projects</span>
+    <button class="pp-close" onclick="closeProjectsPanel()">✕</button>
+  </div>
+  <div class="pp-list" id="ppList"></div>
+  <div class="pp-footer">Saved locally in your browser.<br>Nothing is sent anywhere.</div>
+</aside>
 
+<!-- ════════════════════════ HEADER ═══════════════════════════════ -->
 <header class="site-header">
   <p class="eyebrow">Product Owner Tool</p>
-  <h1>Turn rough notes into<br><em>a sharp Claude prompt</em></h1>
-  <p>Fill in what you know — gaps, guesses, and half-formed ideas are fine. This tool assembles a prompt that tells Claude exactly how to write your conception document.</p>
+  <h1>Generate <em>actor flow diagrams</em><br>for your IT team</h1>
+  <p>Describe your project and add its actors. The tool builds a ready-to-use Claude prompt — paste it, get back visual flow diagrams for every actor, export and share.</p>
 </header>
 
-<!-- ═══════════════════════════════ MAIN ═════════════════════════════════ -->
+<div class="how-bar">
+  <div class="how-step"><span class="how-n">1</span> <span><strong>Paste session cookie</strong> → connect</span></div>
+  <div class="how-step"><span class="how-n">2</span> <span>Fill project + actors</span></div>
+  <div class="how-step"><span class="how-n">3</span> <span>Click <strong>Generate</strong> → diagrams appear</span></div>
+  <div class="how-step"><span class="how-n">4</span> <span>Export PNG / SVG → share</span></div>
+</div>
 
+<!-- ════════════════════════ MAIN ═════════════════════════════════ -->
 <main class="container">
 
   <div class="top-bar">
-    <button class="btn-fill-example" onclick="fillExample()">Fill with example ↓</button>
+    <button class="btn-projects" onclick="openProjectsPanel()">My Projects <span class="proj-count" id="projCount"></span></button>
+    <div class="top-bar-right">
+      <button class="btn-top btn-new" id="btnNew" onclick="newProject()">+ New</button>
+      <button class="btn-top btn-top-ghost" onclick="loadAtlasExample()">Load Atlas example</button>
+      <button class="btn-top btn-top-accent" onclick="saveDraft()">Save draft</button>
+    </div>
   </div>
 
-  <!-- ── Section 1: The basics ─────────────────────────────── -->
+  <!-- 00 Session setup ───────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header" style="margin-bottom:1.25rem;">
+      <span class="card-num" style="background:#F0EDE8;color:var(--text-2);">00</span>
+      <span class="card-title">Connect to claude.ai</span>
+      <span class="conn-badge" id="connBadge">✓ Connected</span>
+    </div>
+    <p class="hint" style="margin-bottom:1.1rem;">
+      Open <strong>claude.ai</strong> in your browser &rarr; press <kbd>F12</kbd> &rarr;
+      <strong>Network</strong> tab &rarr; click any request to claude.ai &rarr;
+      <strong>Request Headers</strong> &rarr; find <strong>cookie</strong> &rarr; copy the full value and paste it below.
+    </p>
+    <div class="field" style="margin-bottom:1.1rem;">
+      <label for="sessionCookie">Cookie header value <span class="req">*</span></label>
+      <input type="password" id="sessionCookie" placeholder="sessionKey=…; _cfuvid=…; …" autocomplete="off" />
+      <p class="hint">Stays in this tab's memory only — never stored, never sent anywhere except to claude.ai through your local server.</p>
+    </div>
+    <div class="setup-conn">
+      <button class="btn-top btn-top-ghost" onclick="testConnection()" id="btnConnect">Test connection</button>
+      <span class="conn-msg" id="connMsg"></span>
+    </div>
+  </div>
+
+  <!-- 01 Project context ──────────────────────────────────── -->
   <div class="card">
     <div class="card-header">
       <span class="card-num">01</span>
-      <span class="card-title">The basics</span>
+      <span class="card-title">Project context</span>
     </div>
-
-    <div class="field">
-      <label for="projectName">Project / feature name <span class="req">*</span></label>
-      <input type="text" id="projectName" placeholder="e.g. Supplier Invoice Portal" autocomplete="off" />
-      <p class="hint">Short and memorable. Will appear as the document title.</p>
-      <p class="err-msg" id="err-name">Please give this project a name before generating.</p>
+    <div class="two-col">
+      <div class="field">
+        <label for="projectName">Project name <span class="req">*</span></label>
+        <input type="text" id="projectName" placeholder="e.g. Atlas Marketplace" autocomplete="off" />
+        <p class="err-msg" id="err-name">Required.</p>
+      </div>
+      <div class="field">
+        <label for="country">Country / market</label>
+        <input type="text" id="country" placeholder="e.g. Morocco" autocomplete="off" />
+      </div>
     </div>
-
     <div class="field">
-      <label for="requester">Requested by</label>
-      <input type="text" id="requester" placeholder="e.g. Sarah (CFO), Finance team, Q2 planning session" autocomplete="off" />
-      <p class="hint">Name, team, or origin of the request. Helps set business context.</p>
+      <label for="description">Project description <span class="req">*</span></label>
+      <textarea id="description" style="min-height:130px;" placeholder="Paste your full project summary here — the more detail you include (user types, business rules, fulfillment logic, payment methods), the more accurate the actor flows will be."></textarea>
+      <p class="err-msg" id="err-desc">Required.</p>
     </div>
-
+    <div class="two-col">
+      <div class="field">
+        <label for="platformType">Platform type</label>
+        <select id="platformType">
+          <option value="">— Select —</option>
+          <option value="marketplace">Marketplace (B2C / B2B / hybrid)</option>
+          <option value="saas">SaaS application</option>
+          <option value="erp">Internal ERP / back-office tool</option>
+          <option value="portal">Customer or supplier portal</option>
+          <option value="mobile">Mobile application</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="diagramDir">Diagram direction</label>
+        <select id="diagramDir">
+          <option value="TD" selected>Top → Down</option>
+          <option value="LR">Left → Right</option>
+        </select>
+      </div>
+    </div>
     <div class="field">
-      <label for="oneLiner">One-line description <span class="req">*</span></label>
-      <input type="text" id="oneLiner" placeholder="e.g. A self-service portal for suppliers to submit and track invoices" autocomplete="off" />
-      <p class="hint">Finish the sentence: "This project is…" — one sentence, even if rough.</p>
-      <p class="err-msg" id="err-oneliner">A one-line description is needed to generate the prompt.</p>
+      <label for="businessRules">Key business rules</label>
+      <textarea id="businessRules" placeholder="e.g. COD only. B2B min 2,000 MAD. Bulk gate above 100 units. 80% stock buffer. Weekly vendor settlement."></textarea>
+      <p class="hint">List every rule that changes how actors behave.</p>
     </div>
   </div>
 
-  <!-- ── Section 2: Problem & why ──────────────────────────── -->
+  <!-- 02 Actors ───────────────────────────────────────────── -->
   <div class="card">
     <div class="card-header">
       <span class="card-num">02</span>
-      <span class="card-title">The problem &amp; why</span>
+      <span class="card-title">Actors</span>
     </div>
-
-    <div class="field">
-      <label for="problem">What problem does this solve?</label>
-      <textarea id="problem" placeholder="e.g. Suppliers currently email invoices manually. The finance team re-keys them into SAP, causing errors and delays. We're missing payment deadlines and straining supplier relationships."></textarea>
-      <p class="hint">Describe the pain, not the solution. Messy notes are fine — Claude will tidy up.</p>
-    </div>
-
-    <div class="field">
-      <label for="success">What does success look like?</label>
-      <textarea id="success" placeholder="e.g. 80% of invoices submitted digitally within 3 months. Finance team spends under 2 hours/week on invoice chasing. Zero missed payment deadlines."></textarea>
-      <p class="hint">Outcomes, not features. Metrics if you have them, vibes if you don't.</p>
-    </div>
+    <p class="hint" style="margin-bottom:1.25rem;">Add every person or role that interacts with the platform. Each gets its own complete flow diagram.</p>
+    <div class="actors-list" id="actorsList"></div>
+    <button class="btn-add-actor" onclick="addActor()">+ Add actor</button>
   </div>
 
-  <!-- ── Section 3: Who uses it ────────────────────────────── -->
+  <!-- 03 Flow depth ───────────────────────────────────────── -->
   <div class="card">
     <div class="card-header">
       <span class="card-num">03</span>
-      <span class="card-title">Who uses it</span>
+      <span class="card-title">Flow depth</span>
     </div>
-
-    <div class="field">
-      <label for="users">Users &amp; roles</label>
-      <textarea id="users" placeholder="e.g. External suppliers (~200 companies of varying size). Internal finance team (~8 people, daily users). Procurement managers (~5 people, occasional approvers). Finance controller who approves large invoices."></textarea>
-      <p class="hint">Who are the human actors? Include external users, internal staff, and admins.</p>
-    </div>
-
-    <div class="field">
-      <label for="keyActions">Key actions they need to perform</label>
-      <textarea id="keyActions" placeholder="e.g. Suppliers: upload invoice, track payment status, get notifications. Finance: review, approve/reject, sync to SAP. Admins: manage supplier accounts."></textarea>
-      <p class="hint">What must each role actually do? Bullet points are fine.</p>
+    <div class="field" style="margin-bottom:0">
+      <label for="depth">Scenario coverage</label>
+      <select id="depth">
+        <option value="standard">Standard — main path + key failure points</option>
+        <option value="exhaustive" selected>Exhaustive — every scenario, edge case, and timeout</option>
+      </select>
+      <p class="hint">Exhaustive is recommended when handing to an IT team.</p>
     </div>
   </div>
 
-  <!-- ── Section 4: Constraints & context ─────────────────── -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-num">04</span>
-      <span class="card-title">Constraints &amp; context</span>
-    </div>
-
-    <div class="field">
-      <label for="systems">Existing systems to integrate with</label>
-      <textarea id="systems" placeholder="e.g. SAP S/4HANA (ERP, read POs + write approved invoices via API). Azure AD (SSO for internal users via SAML). Microsoft Exchange (transactional email notifications)."></textarea>
-      <p class="hint">Tech systems, databases, auth providers, APIs we must connect to.</p>
-    </div>
-
-    <div class="field">
-      <label for="constraints">Hard constraints &amp; deadlines</label>
-      <textarea id="constraints" placeholder="e.g. GDPR compliance required. Go-live before September 30. Can't change the SAP data model — read/write via existing API only. Budget ~€80k."></textarea>
-      <p class="hint">Rules we can't break: compliance, deadlines, budget, technical no-go zones.</p>
-    </div>
-
-    <div class="field">
-      <label for="outOfScope">Explicitly out of scope</label>
-      <textarea id="outOfScope" placeholder="e.g. Payment processing stays in SAP. Supplier onboarding is a separate project. No mobile app for v1. No AI invoice parsing in v1."></textarea>
-      <p class="hint">Being explicit here prevents scope creep in the conception document.</p>
-    </div>
-  </div>
-
-  <!-- ── Section 5: Tune the output ───────────────────────── -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-num">05</span>
-      <span class="card-title">Tune the output</span>
-    </div>
-
-    <div class="tune-grid">
-      <div class="field" style="margin-bottom:0">
-        <label>Who will read the document?</label>
-        <div class="chips">
-          <div class="chip">
-            <input type="radio" name="audience" id="aud-dev" value="dev" />
-            <label for="aud-dev">Dev team</label>
-          </div>
-          <div class="chip">
-            <input type="radio" name="audience" id="aud-arch" value="architect" />
-            <label for="aud-arch">Architect</label>
-          </div>
-          <div class="chip">
-            <input type="radio" name="audience" id="aud-mixed" value="mixed" checked />
-            <label for="aud-mixed">Mixed biz+tech</label>
-          </div>
-          <div class="chip">
-            <input type="radio" name="audience" id="aud-vendor" value="vendor" />
-            <label for="aud-vendor">External vendor</label>
-          </div>
+  <!-- 04 Generate ─────────────────────────────────────────── -->
+  <div class="workflow-card">
+    <div class="wf-row" style="border-bottom:none;">
+      <div class="wf-index"><span class="wf-circle">1</span></div>
+      <div class="wf-content">
+        <p class="wf-title">Generate all diagrams</p>
+        <p class="wf-desc">Builds your prompt, sends it to Claude through your active session, and renders every actor diagram — all in one click.<br>Make sure the server is running (<code style="font-size:0.76rem;background:var(--accent-faint);padding:0.1rem 0.4rem;border-radius:4px;">node server.js</code>) and you are connected above.</p>
+        <button class="btn-primary" onclick="generateDirect()" id="btnGenerate">Generate all diagrams &rarr;</button>
+        <div class="gen-progress" id="genProgress">
+          <p class="gen-status" id="genStatus"></p>
+          <div class="gen-stream" id="genStream"></div>
         </div>
-        <p class="hint">Shapes language, jargon level, and which sections get the most depth.</p>
-      </div>
-
-      <div class="field" style="margin-bottom:0">
-        <label>Document depth</label>
-        <div class="chips">
-          <div class="chip">
-            <input type="radio" name="depth" id="dep-light" value="lightweight" />
-            <label for="dep-light">Lightweight</label>
-          </div>
-          <div class="chip">
-            <input type="radio" name="depth" id="dep-std" value="standard" checked />
-            <label for="dep-std">Standard</label>
-          </div>
-          <div class="chip">
-            <input type="radio" name="depth" id="dep-deep" value="deep" />
-            <label for="dep-deep">Deep</label>
-          </div>
-        </div>
-        <p class="hint">Lightweight: quick 2-pager. Standard: full doc. Deep: exhaustive with sub-sections.</p>
       </div>
     </div>
-
-    <div class="field">
-      <label>How well do you understand this project?</label>
-      <div class="chips">
-        <div class="chip">
-          <input type="radio" name="confidence" id="conf-low" value="barely" onchange="updateConfHint()" />
-          <label for="conf-low">I barely understand it</label>
-        </div>
-        <div class="chip">
-          <input type="radio" name="confidence" id="conf-mid" value="roughly" checked onchange="updateConfHint()" />
-          <label for="conf-mid">I roughly get it</label>
-        </div>
-        <div class="chip">
-          <input type="radio" name="confidence" id="conf-high" value="well" onchange="updateConfHint()" />
-          <label for="conf-high">I understand it well</label>
-        </div>
-      </div>
-      <div class="conf-hint" id="confHint">Claude will fill gaps with reasonable assumptions, label them clearly, and surface unclear areas as open questions.</div>
-    </div>
-
-    <div class="field">
-      <label for="rawNotes">Raw notes / anything else</label>
-      <textarea id="rawNotes" class="tall" placeholder="Paste anything here — meeting notes, Slack snippets, email threads, random thoughts. Claude will make sense of it. More context = better output."></textarea>
-      <p class="hint">No formatting needed. Dump it all in.</p>
-    </div>
   </div>
 
-  <!-- ── Generate ──────────────────────────────────────────── -->
-  <div class="generate-wrap">
-    <p class="generate-note">Messy, incomplete input is fine — Claude will infer and ask questions for the rest.</p>
-    <button class="btn-generate" onclick="generate()">Generate the prompt &rarr;</button>
-  </div>
-
-  <!-- ── Output ────────────────────────────────────────────── -->
-  <section class="output-section" id="outputSection" aria-live="polite">
+  <!-- Output ──────────────────────────────────────────────── -->
+  <section class="output-section" id="outputSection">
     <div class="output-card">
-      <div class="output-top">
-        <span class="output-heading">Your Claude prompt</span>
-        <div class="output-actions">
-          <button class="btn-action btn-copy" id="btnCopy" onclick="copyPrompt()">Copy to clipboard</button>
-          <button class="btn-action btn-dl" onclick="downloadPrompt()">Download .txt</button>
+      <div class="output-hd">
+        <p class="output-hd-title">Actor Flow Diagrams</p>
+        <div class="tabs" id="tabBar"></div>
+      </div>
+      <div class="tab-panels" id="tabPanels"></div>
+      <div class="chat-bar" id="chatBar" style="display:none;">
+        <p class="chat-bar-title">Refine diagrams</p>
+        <div class="chat-history" id="chatHistory"></div>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder="e.g. Add an appeal step to the WhatsApp vendor flow…" onkeydown="if(event.key==='Enter')sendModification()" autocomplete="off" />
+          <button class="btn-chat-send" id="btnChatSend" onclick="sendModification()">Update &rarr;</button>
         </div>
       </div>
-      <pre class="output-box" id="outputBox" tabindex="0"></pre>
-      <p class="output-footer">Paste this into a new Claude conversation for best results.</p>
     </div>
   </section>
 
 </main>
 
-<!-- ═══════════════════════════════ FOOTER ═══════════════════════════════ -->
+<footer class="site-footer">Everything runs locally in your browser — nothing is sent anywhere except to claude.ai (your paste). &nbsp;·&nbsp; Actor Flow Builder</footer>
+<div id="toast" role="status" aria-live="polite"></div>
 
-<footer class="site-footer">
-  Everything runs locally &mdash; nothing is sent anywhere. &nbsp;&middot;&nbsp; Conception Prompt Builder
-</footer>
-
-<!-- ═══════════════════════════════ SCRIPT ═══════════════════════════════ -->
-
+<!-- ════════════════════════ SCRIPT ═══════════════════════════════ -->
 <script>
 'use strict';
 
-// ─── Confidence hint copy ─────────────────────────────────────────────────
+// ─── Mermaid ──────────────────────────────────────────────────────────────
+mermaid.initialize({
+  startOnLoad: false, theme: 'base',
+  themeVariables: {
+    primaryColor: '#C8D5F0', primaryTextColor: '#1E2A4A', primaryBorderColor: '#8BAAE8',
+    lineColor: '#7A6E5F', secondaryColor: '#FFF3E0', tertiaryColor: '#E8F5E9',
+    background: '#ffffff', mainBkg: '#C8D5F0', nodeBorder: '#8BAAE8',
+    clusterBkg: '#F0F4FF', titleColor: '#2C2416', edgeLabelBackground: '#ffffff',
+    fontFamily: 'Spline Sans Mono, Courier New, monospace', fontSize: '13px',
+  },
+  flowchart: { curve: 'basis', padding: 20, htmlLabels: false },
+});
 
-const CONF_HINTS = {
-  barely:  'Claude will ask the 3–5 most important clarifying questions up front, proactively infer intent, and label every assumption as "Assumption:" — nothing invented silently.',
-  roughly: 'Claude will fill gaps with reasonable assumptions, label them clearly, and surface unclear areas as open questions.',
-  well:    'Claude will proceed with confidence, focus on depth and completeness, and only surface edge-case questions. Inferences are still labeled as "Assumption:".',
-};
-
-function updateConfHint() {
-  const val = getRadio('confidence');
-  document.getElementById('confHint').textContent = CONF_HINTS[val] || '';
-}
-
-// ─── Fill with example ────────────────────────────────────────────────────
-
-function fillExample() {
-  setVal('projectName', 'Supplier Self-Service Invoice Portal');
-  setVal('requester',   'Sarah Chen (CFO), Finance team — raised in Q1 planning');
-  setVal('oneLiner',    'A web portal that lets external suppliers submit, track, and manage their invoices directly, integrated with SAP S/4HANA and Azure AD');
-  setVal('problem',
-    'Suppliers currently send invoices by email (sometimes by post). The finance team manually re-keys every invoice into SAP S/4HANA — around 120 invoices per month. This causes transcription errors (roughly 8% error rate), delays payment processing, and generates constant back-and-forth to fix missing data.\n\nWe are missing early-payment discounts and receiving complaints from key suppliers about late payments. The finance team wastes an estimated 15 hours per week on invoice admin.'
-  );
-  setVal('success',
-    'At least 80% of invoices submitted digitally within 3 months of go-live.\nFinance team invoice-admin time drops below 3 hours per week.\nError rate on invoice data below 1%.\nZero missed early-payment discount windows.\nSuppliers rate the portal 4 out of 5 or higher in a post-launch survey.'
-  );
-  setVal('users',
-    'External suppliers (~200 active companies, varying technical literacy — from large multinationals to small family businesses).\nInternal finance team (~8 people, daily users).\nProcurement managers (~5 people, occasional approvers for PO-linked invoices).\nFinance controller (1 person, approves invoices above €50k).\nIT admin (1–2 people, manages supplier accounts and internal user permissions).'
-  );
-  setVal('keyActions',
-    'Suppliers: register or log in with company email, create a new invoice (upload PDF + fill in structured line items), link invoice to a Purchase Order number, track invoice status (submitted / under review / approved / paid), receive email notifications on status changes, download remittance advice.\n\nFinance team: review incoming invoices, match to POs in SAP, approve or reject with a comment, trigger SAP posting, run a weekly invoice status report.\n\nProcurement managers: view invoices linked to their POs, flag discrepancies to finance.\n\nFinance controller: approve high-value invoices (>€50k), see full audit trail.\n\nIT admin: create and deactivate supplier accounts, manage internal user roles.'
-  );
-  setVal('systems',
-    'SAP S/4HANA (core ERP — must read PO data and write approved invoices back; access via existing REST API, no direct DB access, no schema changes).\nAzure Active Directory (SSO for all internal users via SAML 2.0; suppliers use email + password with optional MFA).\nExisting supplier master data in SAP (company name, IBAN, VAT number — readable, not writable from the portal).\nMicrosoft Exchange / Outlook (transactional email notifications).'
-  );
-  setVal('constraints',
-    'GDPR compliance is mandatory — invoice data contains personal and company financial data; must have data retention policy and audit logs.\nHard go-live deadline: 30 September (before fiscal year close).\nSAP integration must use the existing REST API — no direct DB access, no schema changes.\nEstimated budget: €80k for build + first year of hosting.\nAccessibility: WCAG 2.1 AA minimum (several key suppliers have accessibility requirements in their procurement policies).'
-  );
-  setVal('outOfScope',
-    'Payment processing and scheduling (stays entirely in SAP).\nSupplier onboarding / KYC (separate project, handled by Procurement).\nMobile native app (responsive web only for v1).\nAI/ML invoice parsing or OCR (explicitly a v2 item).\nAny system integration beyond SAP and Azure AD.\nMulti-currency beyond EUR and USD.\nSelf-service password reset for suppliers (IT handles this for now).'
-  );
-
-  setRadio('audience',    'mixed');
-  setRadio('depth',       'standard');
-  setRadio('confidence',  'roughly');
-  updateConfHint();
-
-  setVal('rawNotes',
-    'From a Slack message with Sarah (2024-03-15): "we need this before year-end close, the SAP team said the API is ready but hasn\'t been tested properly yet — might be issues there"\n\nFrom meeting notes: Legal flagged that we need to store invoices for 10 years per local tax law. Also mentioned that some suppliers are very small businesses that might struggle with a complex portal — keep it simple.\n\nOpen question I haven\'t resolved yet: do suppliers need to be able to submit a credit note or reverse a submitted invoice? Finance said "probably yes but we\'ll figure out the detail later."\n\nIT mentioned: they want to use Azure hosting since we already have an enterprise agreement — would be good to lean into that.'
-  );
-
-  clearErrors();
-  document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
-}
+// ─── State ────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'actor_flow_v2';
+let actors        = [];
+let actorSeq      = 0;
+let mermaidSeq    = 0;
+let _prompt       = '';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const gv = id => ($( id)?.value || '').trim();
+const sv = (id, v) => { const el = $(id); if (el) el.value = v || ''; };
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const uid = () => (++actorSeq).toString(36) + Date.now().toString(36).slice(-4);
 
-function setVal(id, val) {
-  document.getElementById(id).value = val;
+// ─── Actors ───────────────────────────────────────────────────────────────
+function addActor(d = {}) {
+  actors.push({ id: d.id || uid(), name: d.name||'', role: d.role||'', actions: d.actions||'', scenarios: d.scenarios||'' });
+  renderActors(); checkNew();
 }
 
-function getVal(id) {
-  return (document.getElementById(id).value || '').trim();
-}
+function removeActor(id) { actors = actors.filter(a => a.id !== id); renderActors(); }
 
-function getRadio(name) {
-  const el = document.querySelector(`input[name="${name}"]:checked`);
-  return el ? el.value : '';
-}
-
-function setRadio(name, val) {
-  const el = document.querySelector(`input[name="${name}"][value="${val}"]`);
-  if (el) el.checked = true;
-}
-
-function clearErrors() {
-  ['projectName','oneLiner'].forEach(id => {
-    document.getElementById(id).classList.remove('invalid');
+function syncActors() {
+  actors.forEach(a => {
+    a.name      = gv('an-' + a.id);
+    a.role      = gv('ar-' + a.id);
+    a.actions   = gv('aa-' + a.id);
+    a.scenarios = gv('as-' + a.id);
   });
-  document.getElementById('err-name').style.display    = 'none';
-  document.getElementById('err-oneliner').style.display = 'none';
+}
+
+function renderActors() {
+  $('actorsList').innerHTML = actors.map((a, i) => `
+    <div class="actor-card">
+      <div class="actor-card-top">
+        <span class="actor-badge">Actor ${i+1}</span>
+        <input type="text" class="actor-name-input" id="an-${a.id}" value="${esc(a.name)}" placeholder="Actor name (e.g. B2B Buyer)" />
+        <button class="btn-del-actor" onclick="removeActor('${a.id}')">✕</button>
+      </div>
+      <div class="actor-grid">
+        <div class="field"><label>Role &amp; responsibility</label>
+          <textarea id="ar-${a.id}" placeholder="What they do and their relationship to the system">${esc(a.role)}</textarea></div>
+        <div class="field"><label>Key actions</label>
+          <textarea id="aa-${a.id}" placeholder="Register, browse, add to cart, checkout, track order…">${esc(a.actions)}</textarea></div>
+        <div class="field"><label>Edge cases &amp; failure scenarios</label>
+          <textarea id="as-${a.id}" placeholder="Rejected ICE, stock unavailable, delivery fails twice…">${esc(a.scenarios)}</textarea></div>
+        <div class="field"><label style="color:var(--text-3);font-size:0.68rem">Status</label>
+          <div class="actor-status" id="ast-${a.id}">Not yet generated</div></div>
+      </div>
+    </div>`).join('');
+}
+
+// ─── Context ──────────────────────────────────────────────────────────────
+function getCtx() {
+  return { projectName: gv('projectName'), country: gv('country'), description: gv('description'), platformType: gv('platformType'), businessRules: gv('businessRules'), depth: gv('depth')||'exhaustive', diagramDir: gv('diagramDir')||'TD' };
+}
+function applyCtx(c) {
+  sv('projectName', c.projectName); sv('country', c.country);
+  sv('description', c.description); sv('platformType', c.platformType);
+  sv('businessRules', c.businessRules); sv('depth', c.depth||'exhaustive'); sv('diagramDir', c.diagramDir||'TD');
 }
 
 // ─── Prompt builder ───────────────────────────────────────────────────────
+function buildAllActorsPrompt() {
+  syncActors();
+  const ctx = getCtx();
+  const depthText = ctx.depth === 'exhaustive'
+    ? 'Cover EVERY scenario: happy path, every rejection, failure, timeout, notification, retry, and edge case. Every decision node must have ALL branches labeled. No path may end without a terminal node.'
+    : 'Cover the main happy path and the most critical failure and rejection scenarios.';
 
-let _prompt = '';
+  const actorSection = actors.map((a,i) => `--- ACTOR ${i+1}: ${a.name} ---
+Role: ${a.role}
+Key actions: ${a.actions}
+Edge cases & scenarios to cover: ${a.scenarios||'All relevant scenarios for this actor'}`).join('\n\n');
 
-function buildAudienceInstruction(aud) {
-  const map = {
-    dev:       'AUDIENCE: The development team. Favour technical precision. Include implementation-relevant details, data model hints, and API contract considerations. Business context should be present but kept concise.',
-    architect: 'AUDIENCE: A solution architect. Emphasise architecture decisions, integration patterns, technology choices with rationale, and non-functional requirements. Include a thorough technical design section with alternatives considered.',
-    mixed:     'AUDIENCE: A mixed business and technical audience. Write so that business stakeholders can understand the what and why, and technical stakeholders can understand the how. Avoid unexplained jargon. The Executive Summary must be readable by a non-technical executive.',
-    vendor:    'AUDIENCE: An external vendor or agency. Be fully self-contained — the reader has no internal company context. Define all acronyms, briefly explain the business domain, and be explicit about integration constraints, security standards, and delivery expectations.',
-  };
-  return map[aud] || map.mixed;
+  return `You are a senior business analyst generating visual process flow diagrams for an IT development team.
+
+PROJECT: ${ctx.projectName}
+COUNTRY: ${ctx.country||'Not specified'}
+PLATFORM: ${ctx.platformType||'Not specified'}
+
+DESCRIPTION:
+${ctx.description}
+
+BUSINESS RULES:
+${ctx.businessRules||'See description above'}
+
+══════════════════════════════════════════
+TASK
+══════════════════════════════════════════
+Generate a complete Mermaid flowchart diagram for EACH actor listed below.
+
+SCENARIO COVERAGE:
+${depthText}
+
+MERMAID RULES — apply to every single diagram:
+1. Start every diagram with: flowchart ${ctx.diagramDir}
+2. Define these node styles at the top of every diagram (copy exactly):
+   classDef process fill:#C8D5F0,stroke:#8BAAE8,color:#1E2A4A
+   classDef decision fill:#FFF3E0,stroke:#F9A825,color:#5D4037
+   classDef success fill:#E8F5E9,stroke:#66BB6A,color:#1B5E20
+   classDef error fill:#FFEBEE,stroke:#EF9A9A,color:#B71C1C
+   classDef neutral fill:#F5F5F5,stroke:#BDBDBD,color:#424242
+3. Apply a class to EVERY node using ::: syntax — e.g. A["Step"]:::process
+4. Group logical phases with subgraph — e.g. subgraph Registration, subgraph Checkout
+5. Label every arrow — e.g. -->|approved|  -->|rejected|  -->|out of stock|
+6. Use \\n for sub-labels inside node text — e.g. A["Register\\ncompany details"]:::process
+7. Every decision node must show ALL its branches — never leave one unlabeled or unresolved
+8. Use short unique node IDs (no spaces, no special characters)
+
+OUTPUT FORMAT — follow exactly, no deviation:
+For each actor write this exact heading on its own line:
+### ACTOR: [actor name]
+Then immediately the Mermaid code block (with \`\`\`mermaid fences).
+Repeat for every actor. Nothing else between actors.
+
+══════════════════════════════════════════
+ACTORS
+══════════════════════════════════════════
+
+${actorSection}`;
 }
 
-function buildDepthInstruction(depth) {
-  const map = {
-    lightweight: 'DOCUMENT DEPTH: Lightweight. Target a concise 2–3 page document. Prefer bullet points over prose. Prioritise clarity and speed; do not pad.',
-    standard:    'DOCUMENT DEPTH: Standard. Produce a complete, well-structured conception document. Use prose for context-heavy sections and bullets/tables for lists. Aim for thoroughness without padding.',
-    deep:        'DOCUMENT DEPTH: Deep. Produce an exhaustive conception document. Include detailed sub-sections, multiple acceptance criteria per story, technical design alternatives with trade-offs, measurable NFR targets, and a thorough risk register. This document will serve as the primary reference for the entire project team.',
-  };
-  return map[depth] || map.standard;
+
+// ─── Direct generation via local proxy ───────────────────────────────────
+let orgIdCache = null;
+let convId     = null;
+
+async function testConnection() {
+  const cookie = gv('sessionCookie');
+  if (!cookie) { showToast('Paste your session cookie first'); return; }
+  $('connMsg').textContent = 'Testing…'; $('connMsg').style.color = 'var(--text-2)';
+  $('btnConnect').disabled = true;
+  try {
+    const res = await fetch('/proxy?path=' + encodeURIComponent('/api/organizations'), {
+      headers: { 'x-session-cookie': cookie }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' from claude.ai — session may be expired');
+    const data = await res.json();
+    if (!Array.isArray(data) || !data.length) throw new Error('No organizations found — session may be expired');
+    orgIdCache = data[0].uuid;
+    const name = data[0].name || 'your account';
+    $('connMsg').textContent = '✓ Connected — ' + name; $('connMsg').style.color = 'var(--green)';
+    $('connBadge').classList.add('visible');
+  } catch (e) {
+    const msg = e.message.includes('Failed to fetch')
+      ? 'Server not running — run: node server.js'
+      : e.message;
+    $('connMsg').textContent = '✗ ' + msg; $('connMsg').style.color = '#d94f3d';
+    $('connBadge').classList.remove('visible');
+    orgIdCache = null;
+  } finally { $('btnConnect').disabled = false; }
 }
 
-function buildConfidenceInstruction(conf) {
-  if (conf === 'barely') {
-    return `CONFIDENCE LEVEL: The product owner barely understands this project. Apply these rules:
-1. Before writing the document body, list the 3–5 most important clarifying questions under a heading "Key Questions Before We Start". Be specific and actionable.
-2. Proactively infer intent from the information provided. Fill gaps with the most reasonable interpretation.
-3. Label every inference or invented detail as "Assumption:" inline in the text. Never silently invent company-specific facts (system names, team sizes, compliance regimes, org structures).
-4. Use plain, accessible language throughout; do not assume shared technical context.
-5. The Open Questions section should be especially thorough — help the product owner surface what they don't yet know they need to decide.`;
-  }
-  if (conf === 'well') {
-    return `CONFIDENCE LEVEL: The product owner understands this project well. Apply these rules:
-1. Proceed with confidence; focus on depth, completeness, and precision.
-2. Still label any inferences or gap-fillers as "Assumption:".
-3. The Open Questions section should focus on edge cases, technical trade-offs, and decisions that require stakeholder input — not fundamentals.
-4. You may use appropriate technical terminology for the stated audience.`;
-  }
-  return `CONFIDENCE LEVEL: The product owner roughly understands this project. Apply these rules:
-1. Fill gaps with reasonable assumptions and label them "Assumption:" inline.
-2. Highlight unclear or underdefined areas in the Open Questions section.
-3. Do not silently invent company-specific facts — label all inferences.
-4. Balance technical rigour with business clarity.`;
-}
-
-function buildInputBlock() {
-  const lines = [];
-  const add = (label, id) => {
-    const v = getVal(id);
-    if (v) lines.push(`${label}:\n${v}`);
-  };
-
-  lines.push(`PROJECT NAME: ${getVal('projectName')}`);
-  if (getVal('requester'))  lines.push(`REQUESTED BY: ${getVal('requester')}`);
-  lines.push(`ONE-LINE DESCRIPTION: ${getVal('oneLiner')}`);
-  add('PROBLEM BEING SOLVED',            'problem');
-  add('WHAT SUCCESS LOOKS LIKE',         'success');
-  add('USERS & ROLES',                   'users');
-  add('KEY ACTIONS BY ROLE',             'keyActions');
-  add('EXISTING SYSTEMS TO INTEGRATE',   'systems');
-  add('HARD CONSTRAINTS & DEADLINES',    'constraints');
-  add('EXPLICITLY OUT OF SCOPE',         'outOfScope');
-  add('RAW NOTES / ADDITIONAL CONTEXT',  'rawNotes');
-
-  return lines.join('\n\n');
-}
-
-function buildPrompt() {
-  const name       = getVal('projectName');
-  const audience   = getRadio('audience')   || 'mixed';
-  const depth      = getRadio('depth')      || 'standard';
-  const confidence = getRadio('confidence') || 'roughly';
-
-  return `You are acting as a senior product analyst and solution architect. Your task is to write a comprehensive combined functional and technical conception document for an IT team, based on raw notes from a product owner.
-
-${buildAudienceInstruction(audience)}
-
-${buildDepthInstruction(depth)}
-
-${buildConfidenceInstruction(confidence)}
-
-────────────────────────────────────────────
-DOCUMENT STRUCTURE
-────────────────────────────────────────────
-
-Produce a single, well-formatted Markdown document with the following sections in this order:
-
-1. **Executive Summary**
-   A concise overview: what the project is, why it matters, and what success looks like. Readable by a non-technical executive in under 2 minutes.
-
-2. **Problem & Objectives**
-   The root problem being addressed, business drivers, and 3–5 measurable objectives (SMART format where possible).
-
-3. **Scope**
-   Two clearly labelled sub-sections:
-   — In-scope: what this project covers
-   — Out-of-scope: what is explicitly excluded and why
-
-4. **Users & Roles**
-   A table or structured list of all user personas and roles, their primary goals, and their level of technical sophistication.
-
-5. **Functional Requirements**
-   Written as user stories: *As a [role], I want [action] so that [outcome].*
-   Each user story must include at least 2 acceptance criteria in Given / When / Then format.
-   Group stories by feature area or role.
-
-6. **Functional Flow**
-   A narrative description of the primary end-to-end user journey, followed by a Mermaid flowchart (\`\`\`mermaid code block).
-   The flowchart must cover at minimum: entry point → key decision points → happy path → error/rejection paths → completion.
-
-7. **High-Level Technical Design**
-   Architecture overview covering: system components, integration points, data flow, and technology recommendations.
-   Include a Mermaid architecture diagram (\`\`\`mermaid with graph LR or C4-style notation).
-   Technology suggestions must be framed as recommendations, not decisions, unless the product owner has specified them as hard constraints.
-
-8. **Non-Functional Requirements**
-   Cover at minimum: performance (load, response time targets), security (auth model, data protection, audit logging), scalability, availability/uptime, compliance (GDPR, accessibility, sector-specific), and maintainability.
-   Use measurable targets wherever possible.
-
-9. **Risks & Dependencies**
-   A table with: Risk / Dependency | Likelihood (H/M/L) | Impact (H/M/L) | Mitigation.
-   Cover both technical risks (integration unknowns, third-party dependencies) and business risks (adoption, timeline, budget).
-
-10. **Open Questions**
-    A numbered list of specific questions the product owner must resolve before or during development.
-    Be precise — not "clarify scope" but "Does the portal need to support supplier credit notes in v1? This was mentioned in raw notes as uncertain."
-
-11. **Assumptions Made**
-    A numbered list of every assumption made while writing this document. No silent inventions — if you filled a gap, list it here.
-
-────────────────────────────────────────────
-INPUT FROM THE PRODUCT OWNER
-────────────────────────────────────────────
-
-${buildInputBlock()}
-
-────────────────────────────────────────────
-
-Now write the full conception document in clean Markdown, ready to be shared with the project team.
-Begin with the document title: # Conception Document: ${name}`;
-}
-
-// ─── Generate ─────────────────────────────────────────────────────────────
-
-function generate() {
-  clearErrors();
+async function generateDirect() {
   let ok = true;
+  if (!gv('projectName')) { $('projectName').classList.add('invalid'); $('err-name').style.display='block'; ok=false; }
+  if (!gv('description'))  { $('description').classList.add('invalid');  $('err-desc').style.display='block'; ok=false; }
+  if (!ok) { $('projectName').scrollIntoView({ behavior:'smooth', block:'center' }); return; }
+  if (actors.length === 0) { showToast('Add at least one actor in Section 02'); return; }
+  const cookie = gv('sessionCookie');
+  if (!cookie) { showToast('Paste your session cookie in Section 00 first'); return; }
 
-  if (!getVal('projectName')) {
-    document.getElementById('projectName').classList.add('invalid');
-    document.getElementById('err-name').style.display = 'block';
-    ok = false;
+  _prompt = buildAllActorsPrompt();
+  $('genProgress').classList.add('visible');
+  $('genStream').classList.remove('visible');
+  $('btnGenerate').disabled = true;
+  $('genProgress').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  try {
+    // Org
+    setGenStatus('Getting organization…');
+    if (!orgIdCache) {
+      const r = await fetch('/proxy?path=' + encodeURIComponent('/api/organizations'), {
+        headers: { 'x-session-cookie': cookie }
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' — check session cookie or run node server.js');
+      const orgs = await r.json();
+      if (!Array.isArray(orgs) || !orgs.length) throw new Error('No organizations found — session may be expired');
+      orgIdCache = orgs[0].uuid;
+    }
+
+    // Create conversation
+    setGenStatus('Creating conversation…');
+    const convR = await fetch('/proxy?path=' + encodeURIComponent('/api/organizations/' + orgIdCache + '/chat_conversations'), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-session-cookie': cookie },
+      body: JSON.stringify({ name: '' })
+    });
+    const conv = await convR.json();
+    if (!conv.uuid) throw new Error('Could not create conversation — session may be expired');
+    convId = conv.uuid;
+
+    // Send prompt, stream response
+    setGenStatus('Sending to Claude…');
+    const compR = await fetch('/proxy?path=' + encodeURIComponent('/api/organizations/' + orgIdCache + '/chat_conversations/' + conv.uuid + '/completion'), {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'accept': 'text/event-stream',
+        'x-session-cookie': cookie,
+      },
+      body: JSON.stringify({
+        prompt: '\n\nHuman: ' + _prompt + '\n\nAssistant:',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+        model: null,
+        attachments: [],
+        files: [],
+      })
+    });
+    if (!compR.ok) throw new Error('Claude returned HTTP ' + compR.status + ' — try refreshing your session cookie');
+    if (!compR.body) throw new Error('No streaming response — try a modern browser (Chrome/Edge/Firefox)');
+
+    // Parse SSE
+    let fullText = '';
+    const reader = compR.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    setGenStatus('Claude is generating…');
+    $('genStream').classList.add('visible');
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        if (!raw || raw === '[DONE]') continue;
+        try {
+          const ev = JSON.parse(raw);
+          if (ev.error) throw new Error(ev.error.message || JSON.stringify(ev.error));
+          // claude.ai legacy SSE format
+          if (typeof ev.completion === 'string') fullText += ev.completion;
+          // Anthropic streaming format
+          else if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') fullText += ev.delta.text;
+        } catch (pe) {
+          if (pe.message && !pe.message.includes('JSON')) throw pe;
+        }
+      }
+      $('genStream').textContent = fullText.slice(-400);
+    }
+
+    if (!fullText.trim()) throw new Error('Empty response from Claude — check session cookie and try again');
+
+    setGenStatus('Rendering diagrams…');
+    $('genStream').classList.remove('visible');
+    await parseAndRender(fullText);
+    setGenStatus('Done — ' + actors.length + ' diagram' + (actors.length !== 1 ? 's' : '') + ' ready');
+    $('chatBar').style.display = 'block';
+    $('chatHistory').innerHTML = '';
+    $('chatInput').focus();
+    autoSave();
+
+  } catch (e) {
+    setGenStatus('✗ ' + e.message);
+    showToast(e.message);
+  } finally {
+    $('btnGenerate').disabled = false;
   }
-
-  if (!getVal('oneLiner')) {
-    document.getElementById('oneLiner').classList.add('invalid');
-    document.getElementById('err-oneliner').style.display = 'block';
-    ok = false;
-  }
-
-  if (!ok) {
-    document.getElementById('projectName').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
-  }
-
-  _prompt = buildPrompt();
-
-  const box = document.getElementById('outputBox');
-  box.textContent = _prompt;
-
-  const section = document.getElementById('outputSection');
-  section.classList.add('visible');
-
-  // Reset copy button
-  const btn = document.getElementById('btnCopy');
-  btn.textContent = 'Copy to clipboard';
-  btn.classList.remove('done');
-
-  setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
 }
 
-// ─── Copy ─────────────────────────────────────────────────────────────────
+function setGenStatus(msg) { const el = $('genStatus'); if (el) el.textContent = msg; }
 
-function copyPrompt() {
-  if (!_prompt) return;
+// ─── Chat refinement ──────────────────────────────────────────────────────
+function addChatBubble(role, text) {
+  const el = document.createElement('div');
+  el.className = 'chat-bubble chat-bubble-' + role;
+  el.textContent = text;
+  const hist = $('chatHistory');
+  hist.appendChild(el);
+  hist.scrollTop = hist.scrollHeight;
+  return el;
+}
 
-  const succeed = () => {
-    const btn = document.getElementById('btnCopy');
-    btn.textContent = 'Copied ✓';
-    btn.classList.add('done');
-    setTimeout(() => {
-      btn.textContent = 'Copy to clipboard';
-      btn.classList.remove('done');
-    }, 2800);
-  };
+async function sendModification() {
+  const msg = ($('chatInput')?.value || '').trim();
+  if (!msg) return;
+  const cookie = gv('sessionCookie');
+  if (!cookie) { showToast('Session cookie missing — reconnect in Section 00'); return; }
+  if (!convId)  { showToast('Generate diagrams first'); return; }
 
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(_prompt).then(succeed).catch(fallbackCopy);
-  } else {
-    fallbackCopy();
-    succeed();
+  addChatBubble('user', msg);
+  $('chatInput').value = '';
+  $('btnChatSend').disabled = true;
+  const aiEl = addChatBubble('ai', '…');
+
+  const followUp = 'Update the actor flow diagrams for this change: "' + msg + '"\n\n'
+    + 'Return ONLY the diagrams that changed, in the exact same format:\n'
+    + '### ACTOR: [name]\n```mermaid\n...\n```\n\n'
+    + 'Do not include actors whose diagrams are unchanged.';
+
+  try {
+    const compR = await fetch('/proxy?path=' + encodeURIComponent('/api/organizations/' + orgIdCache + '/chat_conversations/' + convId + '/completion'), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'accept': 'text/event-stream', 'x-session-cookie': cookie },
+      body: JSON.stringify({
+        prompt: '\n\nHuman: ' + followUp + '\n\nAssistant:',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+        model: null, attachments: [], files: []
+      })
+    });
+    if (!compR.ok) throw new Error('HTTP ' + compR.status + ' — try refreshing your session cookie');
+
+    let fullText = '';
+    const reader = compR.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        if (!raw || raw === '[DONE]') continue;
+        try {
+          const ev = JSON.parse(raw);
+          if (typeof ev.completion === 'string') fullText += ev.completion;
+          else if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') fullText += ev.delta.text;
+        } catch(_) {}
+      }
+      aiEl.textContent = '…' + fullText.slice(-120);
+    }
+
+    // Parse and re-render only affected diagrams
+    const sections = fullText.split(/###\s*ACTOR\s*:/i).filter(s => s.trim());
+    let updated = 0;
+    for (const sec of sections) {
+      const secLines = sec.trim().split('\n');
+      const rawName  = secLines[0].trim().toLowerCase();
+      const body     = secLines.slice(1).join('\n');
+      const m = body.match(/```mermaid([\s\S]*?)```/i);
+      if (!m) continue;
+      const code  = m[1].trim();
+      const actor = actors.find(a => {
+        const n = a.name.trim().toLowerCase();
+        return n.includes(rawName) || rawName.includes(n);
+      });
+      if (actor) {
+        await renderDiagram(actor.id, actor.name, code);
+        setTabDot(actor.id, 'done');
+        updated++;
+      }
+    }
+
+    aiEl.textContent = updated > 0
+      ? '✓ ' + updated + ' diagram' + (updated !== 1 ? 's' : '') + ' updated'
+      : 'No diagram changes in response — try rephrasing';
+    if (updated > 0) showToast(updated + ' diagram' + (updated !== 1 ? 's' : '') + ' updated');
+
+  } catch(e) {
+    aiEl.textContent = '✗ ' + e.message;
+    showToast(e.message);
+  } finally {
+    $('btnChatSend').disabled = false;
+    $('chatInput').focus();
   }
 }
 
-function fallbackCopy() {
-  const ta = document.createElement('textarea');
-  ta.value = _prompt;
-  ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
-  document.body.appendChild(ta);
-  ta.focus();
-  ta.select();
-  try { document.execCommand('copy'); } catch (_) {}
-  document.body.removeChild(ta);
+// ─── Parse & render ───────────────────────────────────────────────────────
+async function parseAndRender(textOverride) {
+  const response = (textOverride || '').trim();
+  if (!response) { showToast('No response to render — click Generate first'); return; }
+  syncActors();
+  if (actors.length === 0) { showToast('No actors defined — fill Section 02'); return; }
+
+  // Split on ### ACTOR: headings
+  const sections = response.split(/###\s*ACTOR\s*:/i).filter(s => s.trim());
+  if (!sections.length) { showToast('Format not found — make sure Claude used the ### ACTOR: format'); return; }
+
+  // Build map name → code
+  const codeMap = {};
+  sections.forEach(sec => {
+    const lines   = sec.trim().split('\n');
+    const rawName = lines[0].trim().toLowerCase();
+    const body    = lines.slice(1).join('\n');
+    const m = body.match(/```mermaid([\s\S]*?)```/i);
+    if (m) { codeMap[rawName] = m[1].trim(); }
+    else {
+      const f = body.match(/(flowchart\s+(?:TD|LR|BT|RL)[\s\S]*)/i);
+      if (f) codeMap[rawName] = f[1].trim();
+    }
+  });
+
+  buildTabs();
+  $('outputSection').classList.add('visible');
+  $('outputSection').scrollIntoView({ behavior:'smooth', block:'start' });
+
+  let rendered = 0;
+  for (const actor of actors) {
+    const key   = actor.name.trim().toLowerCase();
+    const match = Object.keys(codeMap).find(k => k.includes(key) || key.includes(k))
+                || Object.keys(codeMap)[actors.indexOf(actor)];
+    const code  = match ? codeMap[match] : null;
+
+    if (code) {
+      await renderDiagram(actor.id, actor.name, code);
+      setTabDot(actor.id, 'done');
+      setActorStatus(actor.id, '✓ Flow ready');
+      rendered++;
+    } else {
+      setPanelError(actor.id, `No diagram found for "${actor.name}". Rebuild the prompt and try again.`);
+      setTabDot(actor.id, 'error');
+      setActorStatus(actor.id, '✗ Not found in response');
+    }
+  }
+
+  showToast(`${rendered} of ${actors.length} diagrams rendered`);
+  autoSave();
 }
 
-// ─── Download ─────────────────────────────────────────────────────────────
+// ─── Tabs ─────────────────────────────────────────────────────────────────
+function buildTabs() {
+  $('tabBar').innerHTML    = '';
+  $('tabPanels').innerHTML = '';
+  actors.forEach((a, i) => {
+    const tab = document.createElement('button');
+    tab.className = 'tab' + (i===0?' active':'');
+    tab.id = 'tab-' + a.id;
+    tab.innerHTML = `<span class="tab-dot" id="dot-${a.id}"></span>${esc(a.name||'Actor '+(i+1))}`;
+    tab.onclick = () => activateTab(a.id);
+    $('tabBar').appendChild(tab);
 
-function downloadPrompt() {
-  if (!_prompt) return;
-  const slug = (getVal('projectName') || 'conception-prompt')
-    .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 60);
-  const blob = new Blob([_prompt], { type: 'text/plain;charset=utf-8' });
+    const panel = document.createElement('div');
+    panel.className = 'tab-panel' + (i===0?' active':'');
+    panel.id = 'panel-' + a.id;
+    panel.innerHTML = '<div class="panel-placeholder">Waiting for Claude\'s response…</div>';
+    $('tabPanels').appendChild(panel);
+  });
+}
+
+function activateTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  $('tab-'  +id)?.classList.add('active');
+  $('panel-'+id)?.classList.add('active');
+}
+
+function setTabDot(id, state) { const d=$('dot-'+id); if(d){ d.className='tab-dot '+(state||''); } }
+function setActorStatus(id, txt) { const el=$('ast-'+id); if(el) el.textContent=txt; }
+function setPanelError(id, msg) { const p=$('panel-'+id); if(p) p.innerHTML=`<div class="panel-error-box">${esc(msg)}</div>`; }
+
+async function renderDiagram(actorId, name, code) {
+  const panel = $('panel-' + actorId);
+  if (!panel) return;
+  const cid = 'mc-' + (++mermaidSeq);
+  try {
+    const { svg } = await mermaid.render(cid, code);
+    panel.innerHTML = `
+      <div class="panel-actions">
+        <span class="panel-ok-label">✓ Ready — export and share with IT team</span>
+        <button class="btn-exp btn-exp-svg" onclick="exportSVG('${actorId}','${esc(name)}')">Export SVG</button>
+        <button class="btn-exp btn-exp-png" onclick="exportPNG('${actorId}','${esc(name)}')">Export PNG</button>
+      </div>
+      <div class="diagram-canvas" id="canvas-${actorId}">${svg}</div>`;
+  } catch(e) {
+    setPanelError(actorId, 'Render error: ' + e.message);
+    setTabDot(actorId, 'error');
+  }
+}
+
+// ─── Export ───────────────────────────────────────────────────────────────
+function getSVG(id) { return document.querySelector('#canvas-'+id+' svg'); }
+
+function exportSVG(id, name) {
+  const el = getSVG(id); if (!el) return;
+  const blob = new Blob([new XMLSerializer().serializeToString(el)], {type:'image/svg+xml;charset=utf-8'});
   const url  = URL.createObjectURL(blob);
-  const a    = Object.assign(document.createElement('a'), { href: url, download: `${slug}-prompt.txt` });
-  a.click();
+  Object.assign(document.createElement('a'),{href:url,download:(name||'diagram')+'.svg'}).click();
   URL.revokeObjectURL(url);
 }
-</script>
 
+function exportPNG(id, name) {
+  const el = getSVG(id); if (!el) return;
+
+  // Resolve pixel dimensions from viewBox or rendered size
+  const vb   = el.viewBox?.baseVal;
+  const rect = el.getBoundingClientRect();
+  const w    = (vb && vb.width)  ? vb.width  : (rect.width  || 1200);
+  const h    = (vb && vb.height) ? vb.height : (rect.height || 800);
+
+  // Clone, fix explicit size, strip external font imports (needed for canvas)
+  const clone = el.cloneNode(true);
+  clone.setAttribute('width',  w);
+  clone.setAttribute('height', h);
+  clone.querySelectorAll('style').forEach(s => {
+    s.textContent = s.textContent.replace(/@import[^;]*;/g, '');
+  });
+
+  const xml     = new XMLSerializer().serializeToString(clone);
+  const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
+  const sc      = 2;
+  const img     = new Image();
+  img.onload = () => {
+    const c   = document.createElement('canvas');
+    c.width   = w * sc; c.height = h * sc;
+    const ctx = c.getContext('2d');
+    ctx.scale(sc, sc);
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+    try {
+      ctx.drawImage(img, 0, 0, w, h);
+      Object.assign(document.createElement('a'), {
+        href: c.toDataURL('image/png'), download: (name || 'diagram') + '.png'
+      }).click();
+    } catch(e) { showToast('Canvas blocked by browser — use SVG export'); }
+  };
+  img.onerror = () => showToast('PNG render failed — use SVG export');
+  img.src = dataUrl;
+}
+
+// ─── Storage ──────────────────────────────────────────────────────────────
+function getProjects() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); } catch { return []; } }
+function saveProjects(p) { localStorage.setItem(STORAGE_KEY,JSON.stringify(p)); updateCount(); }
+
+function updateCount() {
+  const n = getProjects().length, el = $('projCount');
+  n > 0 ? (el.textContent=n, el.classList.add('visible')) : el.classList.remove('visible');
+}
+
+function snap() {
+  syncActors();
+  return { projectName:gv('projectName'), country:gv('country'), description:gv('description'), platformType:gv('platformType'), businessRules:gv('businessRules'), depth:gv('depth'), diagramDir:gv('diagramDir'), actors:JSON.parse(JSON.stringify(actors)) };
+}
+
+function restore(state) {
+  applyCtx(state);
+  actors = (state.actors||[]).map(a=>({...a}));
+  renderActors();
+}
+
+function saveDraft() {
+  const name = gv('projectName');
+  if (!name) { $('projectName').classList.add('invalid'); $('err-name').style.display='block'; $('projectName').scrollIntoView({behavior:'smooth',block:'center'}); return; }
+  syncActors();
+  const list=getProjects(), state=snap(), now=new Date().toISOString();
+  const i=list.findIndex(p=>p.name===name&&p.status==='draft');
+  if(i>=0){ list[i].inputs=state; list[i].updatedAt=now; } else list.unshift({id:Date.now().toString(36),name,status:'draft',createdAt:now,updatedAt:now,inputs:state});
+  saveProjects(list); showToast('Draft saved');
+}
+
+function autoSave() {
+  const name=gv('projectName'); if(!name) return;
+  const list=getProjects(), state=snap(), now=new Date().toISOString();
+  const i=list.findIndex(p=>p.name===name);
+  if(i>=0){ list[i].status='done'; list[i].inputs=state; list[i].updatedAt=now; } else list.unshift({id:Date.now().toString(36),name,status:'done',createdAt:now,updatedAt:now,inputs:state});
+  saveProjects(list);
+}
+
+// ─── Projects panel ───────────────────────────────────────────────────────
+function openProjectsPanel()  { renderPPList(); $('projectsPanel').classList.add('open'); $('projectsOverlay').classList.add('visible'); document.body.style.overflow='hidden'; }
+function closeProjectsPanel() { $('projectsPanel').classList.remove('open'); $('projectsOverlay').classList.remove('visible'); document.body.style.overflow=''; }
+
+function renderPPList() {
+  const list=getProjects();
+  if(!list.length){ $('ppList').innerHTML='<div class="pp-empty"><p>No saved projects yet.</p><p>Fill the form and click<br><strong>Save draft</strong> to start.</p></div>'; return; }
+  $('ppList').innerHTML=list.map(p=>{
+    const d=new Date(p.updatedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    return `<div class="pp-item"><div class="pp-item-info"><span class="pp-item-name">${esc(p.name)}</span><div class="pp-item-meta"><span class="pp-badge ${p.status==='done'?'badge-done':'badge-draft'}">${p.status==='done'?'Done':'Draft'}</span><span class="pp-date">${d}</span></div></div><div class="pp-item-btns"><button class="pp-btn pp-btn-load" onclick="loadProject('${esc(p.id)}')">Load</button><button class="pp-btn pp-btn-del" onclick="deleteProject('${esc(p.id)}')">Delete</button></div></div>`;
+  }).join('');
+}
+
+function loadProject(id) {
+  const p=getProjects().find(p=>p.id===id); if(!p) return;
+  restore(p.inputs);
+  $('outputSection').classList.remove('visible');
+  $('genProgress').classList.remove('visible');
+  $('chatBar').style.display = 'none';
+  convId = null; _prompt = '';
+  closeProjectsPanel(); checkNew();
+  window.scrollTo({top:0,behavior:'smooth'});
+  showToast(`"${p.name}" loaded`);
+}
+
+function deleteProject(id) {
+  const p=getProjects().find(p=>p.id===id); if(!p||!confirm(`Delete "${p.name}"?`)) return;
+  saveProjects(getProjects().filter(x=>x.id!==id)); renderPPList(); showToast('Deleted');
+}
+
+// ─── New project ──────────────────────────────────────────────────────────
+function newProject() {
+  const has=gv('projectName')||gv('description')||actors.length>0;
+  if(has&&!confirm('Clear everything and start fresh?')) return;
+  ['projectName','country','description','businessRules'].forEach(id=>sv(id,''));
+  sv('platformType',''); sv('depth','exhaustive'); sv('diagramDir','TD');
+  actors=[]; renderActors();
+  $('outputSection').classList.remove('visible');
+  $('genProgress').classList.remove('visible');
+  $('chatBar').style.display = 'none';
+  convId = null; _prompt = '';
+  ['projectName','description'].forEach(id=>{ $(id).classList.remove('invalid'); });
+  $('err-name').style.display=$('err-desc').style.display='none';
+  _prompt=''; checkNew();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function checkNew() {
+  const has=gv('projectName')||gv('description')||actors.length>0;
+  $('btnNew').classList.toggle('visible',!!has);
+}
+
+// ─── Atlas example ────────────────────────────────────────────────────────
+function loadAtlasExample() {
+  if((gv('projectName')||actors.length>0)&&!confirm('Replace current data with the Atlas Marketplace example?')) return;
+  sv('projectName','Atlas Marketplace');
+  sv('country','Morocco');
+  sv('platformType','marketplace');
+  sv('depth','exhaustive');
+  sv('diagramDir','TD');
+  sv('description',`Atlas Marketplace is a hybrid B2C/B2B e-commerce platform connecting vendors to retail customers and verified wholesale resellers.
+
+B2C BUYERS: Standard retail experience, sees retail prices, no validation required.
+
+B2B RESELLERS: Must submit ICE number (Identifiant Commun de l'Entreprise — Moroccan company registration ID). Wholesale pricing unlocked ONLY after manual admin verification. Minimum cart value 2,000 MAD to activate wholesale prices at checkout. Dual cart mode: Personal (retail) or Business (wholesale + business invoice).
+
+DUAL FULFILLMENT:
+- P1 Vendor-Direct: Vendor holds physical stock. Platform triggers courier pickup from vendor location. Vendor must confirm order within 4 hours or sub-order is auto-cancelled.
+- P2 Depot: Platform holds stock in a central depot. Platform team handles picking, packing, and shipping.
+
+PRICING: For P2 depot items, the platform applies a dynamic AMP% commission on top of vendor cost to set the selling price. This margin is never shown to buyers. B2B wholesale price uses a lower commission rate on the same formula.
+
+ORDERS:
+- COD (Cash on Delivery) is the ONLY payment method for all buyers and all product types.
+- Cart automatically splits into sub-orders at checkout by fulfillment source (P1 sub-order + P2 sub-order).
+- B2B orders above 100 units or 10,000 MAD trigger a manual stock verification gate before confirmation.
+- Platform displays 80% of vendor's declared stock to protect against overselling.
+- Maximum 2 delivery attempts before auto-cancellation.
+
+FINANCIALS:
+- Successful deliveries credit the vendor's digital ledger. No instant payout.
+- Admin generates a weekly payout sheet every Monday covering the previous week's confirmed deliveries only.
+- Vendor A must update stock counts every 48 hours or products are auto-hidden from bulk ordering.`);
+
+  sv('businessRules',`- COD only — no card or online payment for any order type
+- B2B min cart: 2,000 MAD to unlock wholesale pricing at checkout
+- B2B bulk gate: orders above 100 units OR 10,000 MAD require manual stock verification before confirmation
+- Vendor confirmation window: 4 hours for P1, 2 hours for P2 depot
+- Max delivery attempts: 2 before auto-cancellation
+- P1 returns: not accepted after COD payment at door — buyer inspects before paying agent
+- P2 returns: 7-day window from confirmed delivery — store credit (instant) or bank transfer (5-7 days)
+- Stock buffer: platform shows 80% of vendor declared stock
+- Vendor stock refresh: mandatory every 48 hours or products auto-hidden from bulk ordering
+- Weekly settlement: every Monday — previous week delivered orders only — bank transfer
+- Strike system: 3 failed confirmed P1 orders → vendor review and possible removal`);
+
+  actors=[];
+  [
+    { name:'B2C Buyer', role:'Regular retail customer. No validation required. Sees retail prices only.', actions:'Register, browse products, add to cart, checkout with COD, receive delivery, inspect before paying, track order, request P2 return within 7 days', scenarios:'Out-of-stock product blocked from cart, delivery failed on first attempt, delivery failed twice (auto-cancel), P2 return request, partial order cancellation (one sub-order cancelled)' },
+    { name:'B2B Buyer', role:'Verified wholesale reseller. Has submitted and passed ICE number validation. Access to wholesale pricing with 2,000 MAD minimum cart.', actions:'Register with ICE number, wait for admin approval, receive approval notification, browse with wholesale prices, toggle Personal/Business cart mode, enforce 2,000 MAD minimum, place bulk orders, trigger bulk verification gate, track separate sub-orders, request P2 return', scenarios:'ICE rejected by admin with reason, resubmit corrected ICE, cart below 2,000 MAD threshold blocked, bulk order above 10,000 MAD triggers manual verification gate, verification approved, verification rejected, P1 sub-order cancelled while P2 proceeds, both sub-orders fail, second delivery failure, P2 return approved, P2 return bank transfer' },
+    { name:'Vendor A', role:'External vendor who holds P1 (Vendor-Direct) stock at their own location. Must confirm orders within 4 hours and refresh stock every 48 hours.', actions:'Receive P1 sub-order alert, confirm availability within 4h, flag stock issue, hand off to courier, mark as shipped, update stock count in portal every 48h, view digital ledger, download weekly settlement report', scenarios:'Confirmation timeout after 4 hours (auto-cancel triggered), confirms order but stock turns out unavailable during pickup, 48-hour stock refresh missed (products auto-hidden), second delivery attempt fails and order cancels, receives first strike warning, receives second strike (7-day suspension), receives third strike (removal review), settlement dispute' },
+    { name:'Depot Operator', role:'Platform warehouse staff who manages P2 depot stock. Responsible for inbound stock, picking, packing, shipping, and return processing.', actions:'Log inbound stock after physical count at reception, confirm P2 sub-order availability, action bulk verification gate for P2, pick and pack order, mark as shipped with tracking, handle P2 return reception, log damaged units as stock adjustment, monitor low-stock alerts', scenarios:'Physical stock count differs from system count, inbound quantity differs from invoice, damaged unit found during packing, low stock alert triggered (auto-alert below 20 units, auto-hide below 5), bulk gate verification request, return received in good condition, return received damaged' },
+    { name:'Admin', role:'Platform owner with full access. Manages all operations including ICE validation, vendor oversight, bulk order gates, pricing, settlements, and escalations.', actions:'Review and approve or reject ICE submissions, set product prices and AMP% commission, action bulk order verification queue, generate weekly vendor settlement, monitor stock refresh compliance, manage vendor strike log, emergency de-list product, resolve disputes', scenarios:'ICE number has format error, suspected fraudulent ICE submission, vendor misses 48-hour stock refresh, bulk order gate timeout (neither confirmed nor rejected in time), vendor strike escalation to permanent removal, settlement discrepancy reported by vendor, buyer disputes non-delivery, emergency stock issue discovered' },
+    { name:'Delivery Agent', role:'Third-party courier responsible for last-mile delivery. Collects COD cash at the door after buyer inspects the package.', actions:'Pick up P1 order from vendor location or P2 from depot, attempt first delivery, collect COD payment after buyer inspection, confirm delivery in system, attempt second delivery if first failed, return package to origin after 2 failed attempts, log delivery outcome', scenarios:'Buyer refuses package at door before paying (first attempt), buyer is absent on first attempt, buyer absent again on second attempt (auto-cancellation triggered), COD amount incorrect, package visibly damaged on arrival at buyer, buyer claims package was never delivered, partial order delivery (one sub-order delivered, other not)' },
+  ].forEach(a => addActor(a));
+
+  checkNew();
+  window.scrollTo({top:0,behavior:'smooth'});
+  showToast('Atlas Marketplace loaded — ready to build prompt');
+}
+
+// ─── Toast ────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t=$('toast'); t.textContent=msg; t.classList.add('visible');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('visible'),2500);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+updateCount();
+document.querySelectorAll('input[type="text"],textarea').forEach(el=>el.addEventListener('input',checkNew));
+$('projectName').addEventListener('input',()=>{ $('projectName').classList.remove('invalid'); $('err-name').style.display='none'; });
+$('description').addEventListener('input',()=>{ $('description').classList.remove('invalid'); $('err-desc').style.display='none'; });
+</script>
 </body>
 </html>

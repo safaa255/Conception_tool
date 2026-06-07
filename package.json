@@ -1,0 +1,12 @@
+{
+  "name": "conception-tool",
+  "version": "1.0.0",
+  "description": "Actor Flow Builder — generates Mermaid diagrams via claude.ai",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

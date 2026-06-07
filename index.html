@@ -564,59 +564,101 @@ function applyCtx(c) {
 function buildAllActorsPrompt() {
   syncActors();
   const ctx = getCtx();
+
   const depthText = ctx.depth === 'exhaustive'
-    ? 'Cover EVERY scenario: happy path, every rejection, failure, timeout, notification, retry, and edge case. Every decision node must have ALL branches labeled. No path may end without a terminal node.'
-    : 'Cover the main happy path and the most critical failure and rejection scenarios.';
+    ? `Cover EVERY scenario without exception:
+- Happy path (full success flow)
+- Every rejection, validation failure, and error state
+- Every timeout and retry loop
+- Every notification sent to every party
+- Every edge case and boundary condition
+No path may end without a labeled terminal node. Every decision node must show ALL its branches.`
+    : `Cover the main happy path and the most critical failure and rejection scenarios. Each decision node must show at minimum a success and a failure branch.`;
 
-  const actorSection = actors.map((a,i) => `--- ACTOR ${i+1}: ${a.name} ---
-Role: ${a.role}
+  const actorSection = actors.map((a, i) => `--- ACTOR ${i+1}: ${a.name} ---
+Role & context: ${a.role}
 Key actions: ${a.actions}
-Edge cases & scenarios to cover: ${a.scenarios||'All relevant scenarios for this actor'}`).join('\n\n');
+Edge cases & scenarios to cover: ${a.scenarios || 'All relevant scenarios for this actor'}`).join('\n\n');
 
-  return `You are a senior business analyst generating visual process flow diagrams for an IT development team.
+  const meta = [
+    ctx.projectName && `PROJECT: ${ctx.projectName}`,
+    ctx.country     && `COUNTRY / MARKET: ${ctx.country}`,
+    ctx.platformType && `PLATFORM TYPE: ${ctx.platformType}`,
+  ].filter(Boolean).join('\n');
 
-PROJECT: ${ctx.projectName}
-COUNTRY: ${ctx.country||'Not specified'}
-PLATFORM: ${ctx.platformType||'Not specified'}
+  const rulesBlock = ctx.businessRules
+    ? `\n═══════════════════════════════════════════════════════\nBUSINESS RULES & CONSTRAINTS\n═══════════════════════════════════════════════════════\n${ctx.businessRules}`
+    : '';
 
-DESCRIPTION:
+  return `You are a senior business analyst and solution architect.
+Your task is to produce exhaustive, production-ready actor flow diagrams for an IT development team.
+Each diagram must be self-contained, immediately implementable, and leave zero ambiguity for developers.
+
+═══════════════════════════════════════════════════════
+PROJECT CONTEXT
+═══════════════════════════════════════════════════════
+${meta}
+
 ${ctx.description}
+${rulesBlock}
 
-BUSINESS RULES:
-${ctx.businessRules||'See description above'}
-
-══════════════════════════════════════════
+═══════════════════════════════════════════════════════
 TASK
-══════════════════════════════════════════
-Generate a complete Mermaid flowchart diagram for EACH actor listed below.
+═══════════════════════════════════════════════════════
+Generate one complete Mermaid flowchart for EACH actor listed at the bottom of this prompt.
+Read the full project context above before drawing any diagram — every rule and constraint must be reflected.
 
 SCENARIO COVERAGE:
 ${depthText}
 
-MERMAID RULES — apply to every single diagram:
-1. Start every diagram with: flowchart ${ctx.diagramDir}
-2. Define these node styles at the top of every diagram (copy exactly):
-   classDef process fill:#C8D5F0,stroke:#8BAAE8,color:#1E2A4A
+═══════════════════════════════════════════════════════
+MERMAID RULES — mandatory on every diagram
+═══════════════════════════════════════════════════════
+1. First line of every diagram: flowchart ${ctx.diagramDir}
+
+2. Second block of every diagram — paste these classDefs exactly:
+   classDef process  fill:#C8D5F0,stroke:#8BAAE8,color:#1E2A4A
    classDef decision fill:#FFF3E0,stroke:#F9A825,color:#5D4037
-   classDef success fill:#E8F5E9,stroke:#66BB6A,color:#1B5E20
-   classDef error fill:#FFEBEE,stroke:#EF9A9A,color:#B71C1C
-   classDef neutral fill:#F5F5F5,stroke:#BDBDBD,color:#424242
-3. Apply a class to EVERY node using ::: syntax — e.g. A["Step"]:::process
-4. Group logical phases with subgraph — e.g. subgraph Registration, subgraph Checkout
-5. Label every arrow — e.g. -->|approved|  -->|rejected|  -->|out of stock|
-6. Use \\n for sub-labels inside node text — e.g. A["Register\\ncompany details"]:::process
-7. Every decision node must show ALL its branches — never leave one unlabeled or unresolved
-8. Use short unique node IDs (no spaces, no special characters)
+   classDef success  fill:#E8F5E9,stroke:#66BB6A,color:#1B5E20
+   classDef error    fill:#FFEBEE,stroke:#EF9A9A,color:#B71C1C
+   classDef neutral  fill:#F5F5F5,stroke:#BDBDBD,color:#424242
 
-OUTPUT FORMAT — follow exactly, no deviation:
-For each actor write this exact heading on its own line:
+3. Apply a class to EVERY node: A["Label"]:::process
+
+4. Group logical phases in subgraph blocks:
+   subgraph Registration
+     ...
+   end
+
+5. Label EVERY arrow — no silent transitions:
+   -->|approved| -->|rejected| -->|timeout 2h| -->|out of stock|
+
+6. Multi-line node text: use \\n inside quotes:
+   A["Reserve stock\\nsoft hold — 15 min TTL"]:::process
+
+7. Node IDs: short, unique, no spaces, no special characters (underscores ok)
+
+8. No parentheses inside node labels — use brackets or omit them
+
+9. Every path must terminate at a named end node (:::success, :::error, or :::neutral)
+
+10. Never leave a decision branch unlabeled or dangling
+
+═══════════════════════════════════════════════════════
+OUTPUT FORMAT — follow exactly, no deviation
+═══════════════════════════════════════════════════════
+For each actor write this heading alone on its own line:
 ### ACTOR: [actor name]
-Then immediately the Mermaid code block (with \`\`\`mermaid fences).
-Repeat for every actor. Nothing else between actors.
+Immediately follow with the fenced Mermaid block:
+\`\`\`mermaid
+flowchart ${ctx.diagramDir}
+...
+\`\`\`
+Repeat for every actor in order. No commentary, no prose, nothing outside the code blocks.
 
-══════════════════════════════════════════
-ACTORS
-══════════════════════════════════════════
+═══════════════════════════════════════════════════════
+ACTORS (${actors.length})
+═══════════════════════════════════════════════════════
 
 ${actorSection}`;
 }

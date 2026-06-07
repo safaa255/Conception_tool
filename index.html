@@ -135,7 +135,7 @@
     .actor-card:hover { border-color: var(--border-hover); }
     .actor-card-top { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
     .actor-badge { font-family: var(--font-display); font-size: 0.7rem; font-weight: 700; color: var(--text-2); background: var(--border); padding: 0.15rem 0.5rem; border-radius: 5px; flex-shrink: 0; }
-    .actor-name-input { flex: 1; font-weight: 600; font-size: 0.88rem; background: transparent; border: none; border-bottom: 1.5px solid var(--border); border-radius: 0; padding: 0.25rem 0; color: var(--text); box-shadow: none !important; outline: none; }
+    .actor-name-input { flex: 1; font-weight: 600; font-size: 0.88rem; background: transparent; border: none; border-bottom: 1.5px solid var(--border); border-radius: 0; padding: 0.25rem 0; color: var(--text); box-shadow: none !important; outline: none; resize: vertical; }
     .actor-name-input:focus { border-bottom-color: var(--accent); }
     .actor-name-input::placeholder { color: var(--text-3); font-weight: 400; }
     .btn-del-actor { background: none; border: none; cursor: pointer; color: var(--text-3); font-size: 1rem; padding: 0.2rem 0.4rem; border-radius: 5px; transition: color 0.15s, background 0.15s; flex-shrink: 0; }
@@ -252,9 +252,6 @@
     .pp-btn-del:hover { border-color: #d94f3d; color: #d94f3d; background: #fdf2f1; }
     .pp-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); flex-shrink: 0; text-align: center; font-size: 0.67rem; color: var(--text-3); line-height: 1.6; }
 
-    /* ── Spinner ─────────────────────────────────────────── */
-    @keyframes spin { to { transform: rotate(360deg); } }
-
     /* ── Toast ───────────────────────────────────────────── */
     #toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(1.5rem); background: #1E1A14; color: #EDE8E0; font-family: var(--font-body); font-size: 0.78rem; padding: 0.65rem 1.4rem; border-radius: 99px; box-shadow: 0 4px 20px rgba(44,36,22,0.22); opacity: 0; pointer-events: none; transition: opacity 0.22s, transform 0.22s; z-index: 300; white-space: nowrap; }
     #toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -262,32 +259,13 @@
     /* ── Footer ──────────────────────────────────────────── */
     .site-footer { text-align: center; padding: 1.5rem; font-size: 0.7rem; color: var(--text-3); border-top: 1px solid var(--border); }
 
-    /* ── Setup card ──────────────────────────────────────── */
-    .setup-conn { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.25rem; }
-    .conn-badge { display: none; align-items: center; gap: 0.35rem; font-size: 0.72rem; padding: 0.2rem 0.7rem; border-radius: 99px; background: var(--green-bg); color: var(--green); font-weight: 600; }
-    .conn-badge.visible { display: inline-flex; }
-    .conn-msg { font-size: 0.74rem; color: var(--text-2); }
-    kbd { font-family: var(--font-body); font-size: 0.72rem; background: var(--border); border: 1px solid var(--border-hover); border-radius: 4px; padding: 0.1rem 0.4rem; }
-
     /* ── Chat bar ────────────────────────────────────────── */
     .chat-bar { border-top: 1px solid var(--border); padding: 1.5rem 2rem; }
     .chat-bar-title { font-size: 0.74rem; font-weight: 600; color: var(--text-2); margin-bottom: 0.85rem; letter-spacing: 0.02em; text-transform: uppercase; }
-    .chat-history { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1rem; max-height: 220px; overflow-y: auto; scrollbar-width: thin; }
-    .chat-bubble { font-size: 0.76rem; line-height: 1.55; padding: 0.5rem 0.85rem; border-radius: 10px; max-width: 88%; word-break: break-word; }
-    .chat-bubble-user { align-self: flex-end; background: var(--accent-faint); color: var(--text); border: 1px solid var(--accent-light); }
-    .chat-bubble-ai { align-self: flex-start; background: var(--bg); color: var(--text-2); border: 1px solid var(--border); }
     .chat-input-row { display: flex; gap: 0.5rem; align-items: center; }
     .chat-input-row input { flex: 1; min-height: unset; resize: none; }
     .btn-chat-send { font-family: var(--font-display); font-size: 0.9rem; font-style: italic; font-weight: 600; color: #fff; background: var(--accent); border: none; border-radius: 10px; padding: 0.6rem 1.25rem; cursor: pointer; white-space: nowrap; transition: background 0.15s; flex-shrink: 0; }
     .btn-chat-send:hover { background: var(--accent-hover); }
-    .btn-chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* ── Gen progress ────────────────────────────────────── */
-    .gen-progress { display: none; margin-top: 1rem; }
-    .gen-progress.visible { display: block; }
-    .gen-status { font-size: 0.78rem; color: var(--text-2); margin-bottom: 0.5rem; font-weight: 500; }
-    .gen-stream { display: none; background: #1C1813; border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.68rem; color: #9C8E7A; line-height: 1.6; max-height: 90px; overflow: hidden; white-space: pre-wrap; word-break: break-word; }
-    .gen-stream.visible { display: block; }
 
     @media (max-width: 600px) {
       .card, .workflow-card { padding: 1.5rem 1.25rem; }
@@ -314,14 +292,14 @@
 <header class="site-header">
   <p class="eyebrow">Product Owner Tool</p>
   <h1>Generate <em>actor flow diagrams</em><br>for your IT team</h1>
-  <p>Describe your project and add its actors. The tool builds a ready-to-use Claude prompt — paste it, get back visual flow diagrams for every actor, export and share.</p>
+  <p>Fill in your project and actors. The tool builds your Claude prompt — copy it, paste into claude.ai, then paste Claude's response back to render and export every actor flow diagram.</p>
 </header>
 
 <div class="how-bar">
-  <div class="how-step"><span class="how-n">1</span> <span><strong>Paste session cookie</strong> → connect</span></div>
-  <div class="how-step"><span class="how-n">2</span> <span>Fill project + actors</span></div>
-  <div class="how-step"><span class="how-n">3</span> <span>Click <strong>Generate</strong> → diagrams appear</span></div>
-  <div class="how-step"><span class="how-n">4</span> <span>Export PNG / SVG → share</span></div>
+  <div class="how-step"><span class="how-n">1</span> <span>Fill <strong>project + actors</strong></span></div>
+  <div class="how-step"><span class="how-n">2</span> <span>Click <strong>Build prompt</strong> → copy it</span></div>
+  <div class="how-step"><span class="how-n">3</span> <span>Paste into <strong>claude.ai</strong> → copy response</span></div>
+  <div class="how-step"><span class="how-n">4</span> <span>Paste back → <strong>diagrams render</strong> → export</span></div>
 </div>
 
 <!-- ════════════════════════ MAIN ═════════════════════════════════ -->
@@ -333,29 +311,6 @@
       <button class="btn-top btn-new" id="btnNew" onclick="newProject()">+ New</button>
       <button class="btn-top btn-top-ghost" onclick="loadAtlasExample()">Load Atlas example</button>
       <button class="btn-top btn-top-accent" onclick="saveDraft()">Save draft</button>
-    </div>
-  </div>
-
-  <!-- 00 Session setup ───────────────────────────────────── -->
-  <div class="card">
-    <div class="card-header" style="margin-bottom:1.25rem;">
-      <span class="card-num" style="background:#F0EDE8;color:var(--text-2);">00</span>
-      <span class="card-title">Connect to claude.ai</span>
-      <span class="conn-badge" id="connBadge">✓ Connected</span>
-    </div>
-    <p class="hint" style="margin-bottom:1.1rem;">
-      Open <strong>claude.ai</strong> in your browser &rarr; press <kbd>F12</kbd> &rarr;
-      <strong>Network</strong> tab &rarr; click any request to claude.ai &rarr;
-      <strong>Request Headers</strong> &rarr; find <strong>cookie</strong> &rarr; copy the full value and paste it below.
-    </p>
-    <div class="field" style="margin-bottom:1.1rem;">
-      <label for="sessionCookie">Cookie header value <span class="req">*</span></label>
-      <input type="password" id="sessionCookie" placeholder="sessionKey=…; _cfuvid=…; …" autocomplete="off" />
-      <p class="hint">Stays in this tab's memory only — never stored, never sent anywhere except to claude.ai through your local server.</p>
-    </div>
-    <div class="setup-conn">
-      <button class="btn-top btn-top-ghost" onclick="testConnection()" id="btnConnect">Test connection</button>
-      <span class="conn-msg" id="connMsg"></span>
     </div>
   </div>
 
@@ -436,18 +391,33 @@
     </div>
   </div>
 
-  <!-- 04 Generate ─────────────────────────────────────────── -->
+  <!-- 04 Build prompt + Paste response ──────────────────── -->
   <div class="workflow-card">
-    <div class="wf-row" style="border-bottom:none;">
+    <div class="wf-row">
       <div class="wf-index"><span class="wf-circle">1</span></div>
       <div class="wf-content">
-        <p class="wf-title">Generate all diagrams</p>
-        <p class="wf-desc">Builds your prompt, sends it to Claude through your active session, and renders every actor diagram — all in one click.<br>Make sure the server is running (<code style="font-size:0.76rem;background:var(--accent-faint);padding:0.1rem 0.4rem;border-radius:4px;">node server.js</code>) and you are connected above.</p>
-        <button class="btn-primary" onclick="generateDirect()" id="btnGenerate">Generate all diagrams &rarr;</button>
-        <div class="gen-progress" id="genProgress">
-          <p class="gen-status" id="genStatus"></p>
-          <div class="gen-stream" id="genStream"></div>
+        <p class="wf-title">Build &amp; copy prompt</p>
+        <p class="wf-desc">Generates the full Claude prompt for your project and actors. Copy it, then paste it into <a href="https://claude.ai" target="_blank" rel="noopener">claude.ai</a>. Wait for the full response, then copy it all.</p>
+        <button class="btn-primary" onclick="buildPromptUI()" id="btnBuild">Build prompt &rarr;</button>
+        <div class="prompt-box-wrap" id="promptWrap">
+          <div class="prompt-box-top">
+            <span class="prompt-box-label">Your prompt — copy everything below</span>
+            <button class="btn-copy-prompt" id="btnCopyPrompt" onclick="copyPrompt()">Copy</button>
+          </div>
+          <div class="prompt-box" id="promptBox"></div>
+          <p style="margin-top:0.75rem;font-size:0.74rem;color:var(--text-2);">
+            Open <a href="https://claude.ai" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent);">claude.ai</a> &rarr; paste &rarr; wait for the full response &rarr; copy it all &rarr; paste below.
+          </p>
         </div>
+      </div>
+    </div>
+    <div class="wf-row" style="border-bottom:none;">
+      <div class="wf-index"><span class="wf-circle">2</span></div>
+      <div class="wf-content">
+        <p class="wf-title">Paste response &amp; render</p>
+        <p class="wf-desc">Paste Claude's full response here. The app finds every <code style="font-size:0.76rem;background:var(--accent-faint);padding:0.1rem 0.4rem;border-radius:4px;">### ACTOR:</code> section and renders the diagrams instantly.</p>
+        <textarea id="pasteArea" style="min-height:130px;" placeholder="Paste Claude's full response here…"></textarea>
+        <button class="btn-primary green" onclick="renderFromPaste()" style="margin-top:0.9rem;" id="btnRender">Render diagrams &rarr;</button>
       </div>
     </div>
   </div>
@@ -462,10 +432,17 @@
       <div class="tab-panels" id="tabPanels"></div>
       <div class="chat-bar" id="chatBar" style="display:none;">
         <p class="chat-bar-title">Refine diagrams</p>
-        <div class="chat-history" id="chatHistory"></div>
         <div class="chat-input-row">
-          <input type="text" id="chatInput" placeholder="e.g. Add an appeal step to the WhatsApp vendor flow…" onkeydown="if(event.key==='Enter')sendModification()" autocomplete="off" />
-          <button class="btn-chat-send" id="btnChatSend" onclick="sendModification()">Update &rarr;</button>
+          <input type="text" id="chatInput" placeholder="e.g. Add an appeal step to the Vendor flow…" onkeydown="if(event.key==='Enter')buildRefinementPromptUI()" autocomplete="off" />
+          <button class="btn-chat-send" id="btnChatSend" onclick="buildRefinementPromptUI()">Build follow-up &rarr;</button>
+        </div>
+        <div id="refinementWrap" style="display:none;margin-top:1rem;">
+          <div class="prompt-box-top">
+            <span class="prompt-box-label">Follow-up prompt — paste into the same claude.ai conversation</span>
+            <button class="btn-copy-prompt" id="btnCopyRef" onclick="copyRefinement()">Copy</button>
+          </div>
+          <div class="prompt-box" id="refinementBox"></div>
+          <p style="margin-top:0.6rem;font-size:0.73rem;color:var(--text-2);">After Claude replies &rarr; copy the full response &rarr; paste it in <strong>Step 2</strong> above &rarr; click <strong>Render diagrams</strong> again.</p>
         </div>
       </div>
     </div>
@@ -473,7 +450,7 @@
 
 </main>
 
-<footer class="site-footer">Everything runs locally in your browser — nothing is sent anywhere except to claude.ai (your paste). &nbsp;·&nbsp; Actor Flow Builder</footer>
+<footer class="site-footer">Everything runs in your browser — nothing stored on any server. Projects auto-save locally. &nbsp;·&nbsp; Actor Flow Builder</footer>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <!-- ════════════════════════ SCRIPT ═══════════════════════════════ -->
@@ -499,6 +476,7 @@ let actors        = [];
 let actorSeq      = 0;
 let mermaidSeq    = 0;
 let _prompt       = '';
+let _refinementPrompt = '';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 const $  = id => document.getElementById(id);
@@ -616,260 +594,74 @@ ACTORS
 ${actorSection}`;
 }
 
-
-// ─── Direct generation via local proxy ───────────────────────────────────
-let orgIdCache = null;
-let convId     = null;
-
-async function testConnection() {
-  const cookie = gv('sessionCookie');
-  if (!cookie) { showToast('Paste your session cookie first'); return; }
-  $('connMsg').textContent = 'Testing…'; $('connMsg').style.color = 'var(--text-2)';
-  $('btnConnect').disabled = true;
-  try {
-    const res = await fetch('/proxy?path=' + encodeURIComponent('/api/organizations'), {
-      headers: { 'x-session-cookie': cookie }
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status + ' from claude.ai — session may be expired');
-    const data = await res.json();
-    if (!Array.isArray(data) || !data.length) throw new Error('No organizations found — session may be expired');
-    orgIdCache = data[0].uuid;
-    const name = data[0].name || 'your account';
-    $('connMsg').textContent = '✓ Connected — ' + name; $('connMsg').style.color = 'var(--green)';
-    $('connBadge').classList.add('visible');
-  } catch (e) {
-    const msg = e.message.includes('Failed to fetch')
-      ? 'Server not running — run: node server.js'
-      : e.message;
-    $('connMsg').textContent = '✗ ' + msg; $('connMsg').style.color = '#d94f3d';
-    $('connBadge').classList.remove('visible');
-    orgIdCache = null;
-  } finally { $('btnConnect').disabled = false; }
-}
-
-async function generateDirect() {
+// ─── Prompt UI ────────────────────────────────────────────────────────────
+function buildPromptUI() {
   let ok = true;
   if (!gv('projectName')) { $('projectName').classList.add('invalid'); $('err-name').style.display='block'; ok=false; }
   if (!gv('description'))  { $('description').classList.add('invalid');  $('err-desc').style.display='block'; ok=false; }
   if (!ok) { $('projectName').scrollIntoView({ behavior:'smooth', block:'center' }); return; }
   if (actors.length === 0) { showToast('Add at least one actor in Section 02'); return; }
-  const cookie = gv('sessionCookie');
-  if (!cookie) { showToast('Paste your session cookie in Section 00 first'); return; }
 
   _prompt = buildAllActorsPrompt();
-  $('genProgress').classList.add('visible');
-  $('genStream').classList.remove('visible');
-  $('btnGenerate').disabled = true;
-  $('genProgress').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-  try {
-    // Org
-    setGenStatus('Getting organization…');
-    if (!orgIdCache) {
-      const r = await fetch('/proxy?path=' + encodeURIComponent('/api/organizations'), {
-        headers: { 'x-session-cookie': cookie }
-      });
-      if (!r.ok) throw new Error('HTTP ' + r.status + ' — check session cookie or run node server.js');
-      const orgs = await r.json();
-      if (!Array.isArray(orgs) || !orgs.length) throw new Error('No organizations found — session may be expired');
-      orgIdCache = orgs[0].uuid;
-    }
-
-    // Create conversation
-    setGenStatus('Creating conversation…');
-    const convR = await fetch('/proxy?path=' + encodeURIComponent('/api/organizations/' + orgIdCache + '/chat_conversations'), {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-session-cookie': cookie },
-      body: JSON.stringify({ name: '' })
-    });
-    const conv = await convR.json();
-    if (!conv.uuid) throw new Error('Could not create conversation — session may be expired');
-    convId = conv.uuid;
-
-    // Send prompt, stream response
-    setGenStatus('Sending to Claude…');
-    const compR = await fetch('/proxy?path=' + encodeURIComponent('/api/organizations/' + orgIdCache + '/chat_conversations/' + conv.uuid + '/completion'), {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'accept': 'text/event-stream',
-        'x-session-cookie': cookie,
-      },
-      body: JSON.stringify({
-        prompt: '\n\nHuman: ' + _prompt + '\n\nAssistant:',
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
-        model: null,
-        attachments: [],
-        files: [],
-      })
-    });
-    if (!compR.ok) throw new Error('Claude returned HTTP ' + compR.status + ' — try refreshing your session cookie');
-    if (!compR.body) throw new Error('No streaming response — try a modern browser (Chrome/Edge/Firefox)');
-
-    // Parse SSE
-    let fullText = '';
-    const reader = compR.body.getReader();
-    const decoder = new TextDecoder();
-    let buf = '';
-
-    setGenStatus('Claude is generating…');
-    $('genStream').classList.add('visible');
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buf += decoder.decode(value, { stream: true });
-      const lines = buf.split('\n');
-      buf = lines.pop();
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const raw = line.slice(6).trim();
-        if (!raw || raw === '[DONE]') continue;
-        try {
-          const ev = JSON.parse(raw);
-          if (ev.error) throw new Error(ev.error.message || JSON.stringify(ev.error));
-          // claude.ai legacy SSE format
-          if (typeof ev.completion === 'string') fullText += ev.completion;
-          // Anthropic streaming format
-          else if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') fullText += ev.delta.text;
-        } catch (pe) {
-          if (pe.message && !pe.message.includes('JSON')) throw pe;
-        }
-      }
-      $('genStream').textContent = fullText.slice(-400);
-    }
-
-    if (!fullText.trim()) throw new Error('Empty response from Claude — check session cookie and try again');
-
-    setGenStatus('Rendering diagrams…');
-    $('genStream').classList.remove('visible');
-    await parseAndRender(fullText);
-    setGenStatus('Done — ' + actors.length + ' diagram' + (actors.length !== 1 ? 's' : '') + ' ready');
-    $('chatBar').style.display = 'block';
-    $('chatHistory').innerHTML = '';
-    $('chatInput').focus();
-    autoSave();
-
-  } catch (e) {
-    setGenStatus('✗ ' + e.message);
-    showToast(e.message);
-  } finally {
-    $('btnGenerate').disabled = false;
-  }
+  const box = $('promptBox');
+  if (box) box.textContent = _prompt;
+  $('promptWrap').classList.add('visible');
+  $('promptWrap').scrollIntoView({ behavior:'smooth', block:'nearest' });
+  const btn = $('btnCopyPrompt');
+  if (btn) { btn.textContent = 'Copy'; btn.classList.remove('done'); }
 }
 
-function setGenStatus(msg) { const el = $('genStatus'); if (el) el.textContent = msg; }
-
-// ─── Chat refinement ──────────────────────────────────────────────────────
-function addChatBubble(role, text) {
-  const el = document.createElement('div');
-  el.className = 'chat-bubble chat-bubble-' + role;
-  el.textContent = text;
-  const hist = $('chatHistory');
-  hist.appendChild(el);
-  hist.scrollTop = hist.scrollHeight;
-  return el;
+function copyPrompt() {
+  if (!_prompt) return;
+  navigator.clipboard.writeText(_prompt).then(() => {
+    const btn = $('btnCopyPrompt');
+    if (btn) { btn.textContent = 'Copied!'; btn.classList.add('done'); setTimeout(()=>{ btn.textContent='Copy'; btn.classList.remove('done'); }, 2000); }
+    showToast('Prompt copied — paste it into claude.ai');
+  }).catch(() => showToast('Copy failed — select all text and copy manually'));
 }
 
-async function sendModification() {
+function renderFromPaste() {
+  const text = ($('pasteArea')?.value || '').trim();
+  if (!text) { showToast("Paste Claude's response first"); return; }
+  if (actors.length === 0) { showToast('No actors defined — fill Section 02'); return; }
+  parseAndRender(text);
+  $('chatBar').style.display = 'block';
+}
+
+function buildRefinementPromptUI() {
   const msg = ($('chatInput')?.value || '').trim();
   if (!msg) return;
-  const cookie = gv('sessionCookie');
-  if (!cookie) { showToast('Session cookie missing — reconnect in Section 00'); return; }
-  if (!convId)  { showToast('Generate diagrams first'); return; }
-
-  addChatBubble('user', msg);
-  $('chatInput').value = '';
-  $('btnChatSend').disabled = true;
-  const aiEl = addChatBubble('ai', '…');
-
-  const followUp = 'Update the actor flow diagrams for this change: "' + msg + '"\n\n'
+  _refinementPrompt = 'Update the actor flow diagrams for this change: "' + msg + '"\n\n'
     + 'Return ONLY the diagrams that changed, in the exact same format:\n'
     + '### ACTOR: [name]\n```mermaid\n...\n```\n\n'
     + 'Do not include actors whose diagrams are unchanged.';
+  const box = $('refinementBox');
+  if (box) box.textContent = _refinementPrompt;
+  $('refinementWrap').style.display = 'block';
+  $('refinementWrap').scrollIntoView({ behavior:'smooth', block:'nearest' });
+  const btn = $('btnCopyRef');
+  if (btn) { btn.textContent = 'Copy'; btn.classList.remove('done'); }
+}
 
-  try {
-    const compR = await fetch('/proxy?path=' + encodeURIComponent('/api/organizations/' + orgIdCache + '/chat_conversations/' + convId + '/completion'), {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'accept': 'text/event-stream', 'x-session-cookie': cookie },
-      body: JSON.stringify({
-        prompt: '\n\nHuman: ' + followUp + '\n\nAssistant:',
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
-        model: null, attachments: [], files: []
-      })
-    });
-    if (!compR.ok) throw new Error('HTTP ' + compR.status + ' — try refreshing your session cookie');
-
-    let fullText = '';
-    const reader = compR.body.getReader();
-    const decoder = new TextDecoder();
-    let buf = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buf += decoder.decode(value, { stream: true });
-      const lines = buf.split('\n'); buf = lines.pop();
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const raw = line.slice(6).trim();
-        if (!raw || raw === '[DONE]') continue;
-        try {
-          const ev = JSON.parse(raw);
-          if (typeof ev.completion === 'string') fullText += ev.completion;
-          else if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') fullText += ev.delta.text;
-        } catch(_) {}
-      }
-      aiEl.textContent = '…' + fullText.slice(-120);
-    }
-
-    // Parse and re-render only affected diagrams
-    const sections = fullText.split(/###\s*ACTOR\s*:/i).filter(s => s.trim());
-    let updated = 0;
-    for (const sec of sections) {
-      const secLines = sec.trim().split('\n');
-      const rawName  = secLines[0].trim().toLowerCase();
-      const body     = secLines.slice(1).join('\n');
-      const m = body.match(/```mermaid([\s\S]*?)```/i);
-      if (!m) continue;
-      const code  = m[1].trim();
-      const actor = actors.find(a => {
-        const n = a.name.trim().toLowerCase();
-        return n.includes(rawName) || rawName.includes(n);
-      });
-      if (actor) {
-        await renderDiagram(actor.id, actor.name, code);
-        setTabDot(actor.id, 'done');
-        updated++;
-      }
-    }
-
-    aiEl.textContent = updated > 0
-      ? '✓ ' + updated + ' diagram' + (updated !== 1 ? 's' : '') + ' updated'
-      : 'No diagram changes in response — try rephrasing';
-    if (updated > 0) showToast(updated + ' diagram' + (updated !== 1 ? 's' : '') + ' updated');
-
-  } catch(e) {
-    aiEl.textContent = '✗ ' + e.message;
-    showToast(e.message);
-  } finally {
-    $('btnChatSend').disabled = false;
-    $('chatInput').focus();
-  }
+function copyRefinement() {
+  if (!_refinementPrompt) return;
+  navigator.clipboard.writeText(_refinementPrompt).then(() => {
+    const btn = $('btnCopyRef');
+    if (btn) { btn.textContent = 'Copied!'; btn.classList.add('done'); setTimeout(()=>{ btn.textContent='Copy'; btn.classList.remove('done'); }, 2000); }
+    showToast('Follow-up copied — paste it into claude.ai');
+  }).catch(() => showToast('Copy failed — select all text manually'));
 }
 
 // ─── Parse & render ───────────────────────────────────────────────────────
 async function parseAndRender(textOverride) {
   const response = (textOverride || '').trim();
-  if (!response) { showToast('No response to render — click Generate first'); return; }
+  if (!response) { showToast('No response to render'); return; }
   syncActors();
   if (actors.length === 0) { showToast('No actors defined — fill Section 02'); return; }
 
-  // Split on ### ACTOR: headings
   const sections = response.split(/###\s*ACTOR\s*:/i).filter(s => s.trim());
   if (!sections.length) { showToast('Format not found — make sure Claude used the ### ACTOR: format'); return; }
 
-  // Build map name → code
   const codeMap = {};
   sections.forEach(sec => {
     const lines   = sec.trim().split('\n');
@@ -974,13 +766,11 @@ function exportSVG(id, name) {
 function exportPNG(id, name) {
   const el = getSVG(id); if (!el) return;
 
-  // Resolve pixel dimensions from viewBox or rendered size
   const vb   = el.viewBox?.baseVal;
   const rect = el.getBoundingClientRect();
   const w    = (vb && vb.width)  ? vb.width  : (rect.width  || 1200);
   const h    = (vb && vb.height) ? vb.height : (rect.height || 800);
 
-  // Clone, fix explicit size, strip external font imports (needed for canvas)
   const clone = el.cloneNode(true);
   clone.setAttribute('width',  w);
   clone.setAttribute('height', h);
@@ -1064,9 +854,8 @@ function loadProject(id) {
   const p=getProjects().find(p=>p.id===id); if(!p) return;
   restore(p.inputs);
   $('outputSection').classList.remove('visible');
-  $('genProgress').classList.remove('visible');
   $('chatBar').style.display = 'none';
-  convId = null; _prompt = '';
+  _prompt = ''; _refinementPrompt = '';
   closeProjectsPanel(); checkNew();
   window.scrollTo({top:0,behavior:'smooth'});
   showToast(`"${p.name}" loaded`);
@@ -1085,12 +874,13 @@ function newProject() {
   sv('platformType',''); sv('depth','exhaustive'); sv('diagramDir','TD');
   actors=[]; renderActors();
   $('outputSection').classList.remove('visible');
-  $('genProgress').classList.remove('visible');
   $('chatBar').style.display = 'none';
-  convId = null; _prompt = '';
+  $('promptWrap').classList.remove('visible');
+  sv('pasteArea','');
+  _prompt=''; _refinementPrompt='';
   ['projectName','description'].forEach(id=>{ $(id).classList.remove('invalid'); });
   $('err-name').style.display=$('err-desc').style.display='none';
-  _prompt=''; checkNew();
+  checkNew();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 

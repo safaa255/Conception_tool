@@ -259,6 +259,16 @@
     /* ── Footer ──────────────────────────────────────────── */
     .site-footer { text-align: center; padding: 1.5rem; font-size: 0.7rem; color: var(--text-3); border-top: 1px solid var(--border); }
 
+    /* ── Suggest actors panel ────────────────────────────── */
+    .suggest-panel { background: var(--accent-faint); border: 1.5px dashed var(--accent-light); border-radius: 12px; padding: 1.1rem 1.25rem; margin-bottom: 1.25rem; }
+    .suggest-panel-title { font-size: 0.78rem; font-weight: 600; color: var(--text); margin-bottom: 0.35rem; }
+    .suggest-panel-hint { font-size: 0.71rem; color: var(--text-2); margin-bottom: 0.8rem; line-height: 1.5; }
+    .btn-suggest { font-family: var(--font-body); font-size: 0.78rem; font-weight: 600; color: var(--accent); background: #fff; border: 1.5px solid var(--accent); border-radius: 8px; padding: 0.45rem 1rem; cursor: pointer; transition: all 0.15s; }
+    .btn-suggest:hover { background: var(--accent); color: #fff; }
+    .divider-or { display: flex; align-items: center; gap: 0.75rem; margin: 1.25rem 0; }
+    .divider-or span { font-size: 0.7rem; color: var(--text-3); white-space: nowrap; }
+    .divider-or::before, .divider-or::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
     /* ── Chat bar ────────────────────────────────────────── */
     .chat-bar { border-top: 1px solid var(--border); padding: 1.5rem 2rem; }
     .chat-bar-title { font-size: 0.74rem; font-weight: 600; color: var(--text-2); margin-bottom: 0.85rem; letter-spacing: 0.02em; text-transform: uppercase; }
@@ -370,7 +380,24 @@
       <span class="card-num">02</span>
       <span class="card-title">Actors</span>
     </div>
-    <p class="hint" style="margin-bottom:1.25rem;">Add every person or role that interacts with the platform. Each gets its own complete flow diagram.</p>
+
+    <div class="suggest-panel">
+      <p class="suggest-panel-title">Auto-suggest actors from your project</p>
+      <p class="suggest-panel-hint">Fill Section 01 first, then click below. The app builds a prompt — copy it, paste into claude.ai, copy the response, paste it back and import.</p>
+      <button class="btn-suggest" onclick="buildActorSuggestionPrompt()" id="btnSuggest">Suggest actors from project &rarr;</button>
+      <div class="prompt-box-wrap" id="actorPromptWrap">
+        <div class="prompt-box-top" style="margin-top:0.9rem;">
+          <span class="prompt-box-label">Copy this prompt → paste into claude.ai → copy full response → paste below</span>
+          <button class="btn-copy-prompt" id="btnCopyActorPrompt" onclick="copyActorPrompt()">Copy</button>
+        </div>
+        <div class="prompt-box" id="actorPromptBox"></div>
+        <textarea id="actorPasteArea" style="min-height:100px;margin-top:0.75rem;" placeholder="Paste Claude's full response here…"></textarea>
+        <button class="btn-primary green" onclick="importActors()" style="margin-top:0.75rem;">Import actors &rarr;</button>
+      </div>
+    </div>
+
+    <div class="divider-or"><span>or add actors manually</span></div>
+
     <div class="actors-list" id="actorsList"></div>
     <button class="btn-add-actor" onclick="addActor()">+ Add actor</button>
   </div>
@@ -592,6 +619,91 @@ ACTORS
 ══════════════════════════════════════════
 
 ${actorSection}`;
+}
+
+// ─── Actor suggestion ─────────────────────────────────────────────────────
+let _actorSuggestionPrompt = '';
+
+function buildActorSuggestionPrompt() {
+  const ctx = getCtx();
+  if (!ctx.projectName && !ctx.description) {
+    showToast('Fill in Section 01 first — at least project name and description');
+    return;
+  }
+  _actorSuggestionPrompt = `Based on this project, identify ALL the people and roles (actors) who interact with the platform.
+
+PROJECT: ${ctx.projectName || 'Not specified'}
+COUNTRY: ${ctx.country || 'Not specified'}
+PLATFORM TYPE: ${ctx.platformType || 'Not specified'}
+
+DESCRIPTION:
+${ctx.description || 'Not provided'}
+
+BUSINESS RULES:
+${ctx.businessRules || 'See description above'}
+
+For EACH actor, use this EXACT format (copy it exactly, no deviation):
+### ACTOR: [actor name]
+Role: [who they are and their relationship to the platform]
+Key actions: [comma-separated main actions they take on the platform]
+Edge cases: [comma-separated failure scenarios, rejections, edge cases for this actor]
+
+Be exhaustive — list every actor including internal staff, external users, and third parties.`;
+
+  const box = $('actorPromptBox');
+  if (box) box.textContent = _actorSuggestionPrompt;
+  $('actorPromptWrap').classList.add('visible');
+  $('actorPromptWrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  const btn = $('btnCopyActorPrompt');
+  if (btn) { btn.textContent = 'Copy'; btn.classList.remove('done'); }
+}
+
+function copyActorPrompt() {
+  if (!_actorSuggestionPrompt) return;
+  navigator.clipboard.writeText(_actorSuggestionPrompt).then(() => {
+    const btn = $('btnCopyActorPrompt');
+    if (btn) { btn.textContent = 'Copied!'; btn.classList.add('done'); setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 2000); }
+    showToast('Prompt copied — paste into claude.ai');
+  }).catch(() => showToast('Copy failed — select all text and copy manually'));
+}
+
+function importActors() {
+  const text = ($('actorPasteArea')?.value || '').trim();
+  if (!text) { showToast("Paste Claude's response first"); return; }
+
+  const sections = text.split(/###\s*ACTOR\s*:/i).filter(s => s.trim());
+  if (!sections.length) { showToast('No actors found — make sure Claude used the ### ACTOR: format'); return; }
+
+  const parsed = [];
+  for (const sec of sections) {
+    const lines = sec.trim().split('\n');
+    const name = lines[0].replace(/\*/g, '').trim();
+    if (!name) continue;
+
+    let role = '', actions = '', scenarios = '', current = null;
+    for (const raw of lines.slice(1)) {
+      const line = raw.trim();
+      if (/^role\s*:/i.test(line))            { current = 'role';      role      = line.replace(/^role\s*:\s*/i, ''); }
+      else if (/^key actions?\s*:/i.test(line)) { current = 'actions';   actions   = line.replace(/^key actions?\s*:\s*/i, ''); }
+      else if (/^edge cases?\s*:/i.test(line))  { current = 'scenarios'; scenarios = line.replace(/^edge cases?\s*:\s*/i, ''); }
+      else if (line && current) {
+        if (current === 'role')      role      += ' ' + line;
+        else if (current === 'actions')   actions   += ' ' + line;
+        else if (current === 'scenarios') scenarios += ' ' + line;
+      }
+    }
+    parsed.push({ name, role: role.trim(), actions: actions.trim(), scenarios: scenarios.trim() });
+  }
+
+  if (!parsed.length) { showToast('Could not parse actors — check the format'); return; }
+  if (actors.length > 0 && !confirm(`Replace ${actors.length} existing actor(s) with ${parsed.length} suggested actor(s)?`)) return;
+
+  actors = [];
+  parsed.forEach(a => addActor(a));
+  sv('actorPasteArea', '');
+  $('actorPromptWrap').classList.remove('visible');
+  showToast(parsed.length + ' actors imported');
+  $('actorsList').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // ─── Prompt UI ────────────────────────────────────────────────────────────

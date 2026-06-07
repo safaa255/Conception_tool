@@ -1003,61 +1003,105 @@ function checkNew() {
 
 // ─── Atlas example ────────────────────────────────────────────────────────
 function loadAtlasExample() {
-  if((gv('projectName')||actors.length>0)&&!confirm('Replace current data with the Atlas Marketplace example?')) return;
-  sv('projectName','Atlas Marketplace');
+  if((gv('projectName')||actors.length>0)&&!confirm('Replace current data with the Atlas example?')) return;
+  sv('projectName','Atlas');
   sv('country','Morocco');
   sv('platformType','marketplace');
   sv('depth','exhaustive');
   sv('diagramDir','TD');
-  sv('description',`Atlas Marketplace is a hybrid B2C/B2B e-commerce platform connecting vendors to retail customers and verified wholesale resellers.
+  sv('description',`Atlas is a multi-vendor B2C + B2B e-commerce marketplace for Morocco, cash-on-delivery only. Long-term goal: become the reference platform companies standardize purchasing on (local Amazon Business / Alibaba). Design for that ambition: clean data model, reusable services, manual-first operations that automate later without rebuilds.
 
-B2C BUYERS: Standard retail experience, sees retail prices, no validation required.
+STOCK & FULFILLMENT:
+Every product lives in ONE depot: Atlas depot (we hold and ship) or brand/vendor depot (brand holds and ships). One order can span both depots and SPLITS into sub-orders by depot. Availability must be a RESERVATION (soft-hold with TTL 15–30 min, not a one-time read). Re-validate holds at place-order. Order commits and splits only once both legs are confirmed. Fail before dispatch, never at the customer's door.
 
-B2B RESELLERS: Must submit ICE number (Identifiant Commun de l'Entreprise — Moroccan company registration ID). Wholesale pricing unlocked ONLY after manual admin verification. Minimum cart value 2,000 MAD to activate wholesale prices at checkout. Dual cart mode: Personal (retail) or Business (wholesale + business invoice).
+DELIVERY DATES (computed per line at reservation):
+Atlas in-stock = 1–2d. Brand near = 3–4d. Brand far = 6–7d (padded — we don't control them). Numbers are admin-set defaults. Show per-line date + order-level date. Offer split vs consolidated shipping (B2B often needs consolidated). Re-confirm date when re-confirming the hold.
 
-DUAL FULFILLMENT:
-- P1 Vendor-Direct: Vendor holds physical stock. Platform triggers courier pickup from vendor location. Vendor must confirm order within 4 hours or sub-order is auto-cancelled.
-- P2 Depot: Platform holds stock in a central depot. Platform team handles picking, packing, and shipping.
+BRAND CONFIRMATION (managed vendors):
+WhatsApp Business API with PRE-APPROVED template + interactive reply buttons [Disponible]/[Rupture], each with a unique ID read by a webhook (no human parsing). Atlas lines confirm instantly; brand lines show "pending brand confirmation". TIMEOUT = 2h → escalate (cancel brand line, keep Atlas part, notify buyer, offer substitute). On Rupture or timeout: cancel brand line, keep Atlas part, notify buyer. B2B: confirm partial-shipment policy before proceeding.
 
-PRICING: For P2 depot items, the platform applies a dynamic AMP% commission on top of vendor cost to set the selling price. This margin is never shown to buyers. B2B wholesale price uses a lower commission rate on the same formula.
+DELIVERY & RETURNS:
+Courier calls buyer before arriving. Not home: 2 re-delivery attempts within ~7 working days → hold at pickup point with deadline → return to stock. Atlas absorbs courier cost (do NOT charge buyer for redelivery in v1). Track repeat no-shows and flag them.
+Two QC checks: at depot packing + at courier handover.
+B2C: after-delivery SAV claim (7-day window, admin-configurable per category, photo/video proof required), single return path.
+B2B: formal qty/quality inspection BEFORE unloading → two paths: at-door rejection (immediate reverse logistics) or post-delivery claim (window). Optional ID check at door for high-value COD.
+COD cash chain: buyer pays courier → courier remits to Atlas (~24h, 2–5% commission) → Atlas takes commission → credits vendor ledger. Build reconciliation log from day one.
 
-ORDERS:
-- COD (Cash on Delivery) is the ONLY payment method for all buyers and all product types.
-- Cart automatically splits into sub-orders at checkout by fulfillment source (P1 sub-order + P2 sub-order).
-- B2B orders above 100 units or 10,000 MAD trigger a manual stock verification gate before confirmation.
-- Platform displays 80% of vendor's declared stock to protect against overselling.
-- Maximum 2 delivery attempts before auto-cancellation.
+DATA MODEL (load-bearing shape: order → suborder → orderline):
+Tables: company (ICE unique key, type buyer/vendor, status, tier, vendor_mode self_serve/managed, commission_pct, reliability_score, holdback_balance), user (email unique, company_id nullable for shoppers, role, status), product (vendor_id, depot atlas/brand, stock_qty, retail_price, moq, lead_time, active), price_tier (product_id, tier, wholesale_price, moq), reservation (product_id, user_id, qty, status, expires_at), order (buyer_id, status, ship_mode split/consolidated), suborder (order_id, depot, vendor_id, status, promised_date), orderline (suborder_id, product_id, qty, unit_price), delivery (suborder_id, courier, attempts, status, pickup_point), payment_cod (order_id, amount, collected_at, remitted_at), ledger_entry (vendor_id, suborder_id, amount, type credit/payout/holdback), notification (party_id, channel, event, payload, status), audit_log append-only.
 
-FINANCIALS:
-- Successful deliveries credit the vendor's digital ledger. No instant payout.
-- Admin generates a weekly payout sheet every Monday covering the previous week's confirmed deliveries only.
-- Vendor A must update stock counts every 48 hours or products are auto-hidden from bulk ordering.`);
+REUSABLE SERVICES (build once, call everywhere — do NOT reimplement per actor):
+Notification service: buyers (bell + email + WhatsApp), self-serve vendors (dashboard + WhatsApp), admin (dashboard + email), managed brands (WhatsApp only). Delivery/tracking record. Append-only audit log.`);
 
-  sv('businessRules',`- COD only — no card or online payment for any order type
-- B2B min cart: 2,000 MAD to unlock wholesale pricing at checkout
-- B2B bulk gate: orders above 100 units OR 10,000 MAD require manual stock verification before confirmation
-- Vendor confirmation window: 4 hours for P1, 2 hours for P2 depot
-- Max delivery attempts: 2 before auto-cancellation
-- P1 returns: not accepted after COD payment at door — buyer inspects before paying agent
-- P2 returns: 7-day window from confirmed delivery — store credit (instant) or bank transfer (5-7 days)
-- Stock buffer: platform shows 80% of vendor declared stock
-- Vendor stock refresh: mandatory every 48 hours or products auto-hidden from bulk ordering
-- Weekly settlement: every Monday — previous week delivered orders only — bank transfer
-- Strike system: 3 failed confirmed P1 orders → vendor review and possible removal`);
+  sv('businessRules',`CORE CONSTRAINTS:
+- COD only — no card or online payment, ever
+- One account = one role at launch (a company cannot be both buyer and vendor)
+- Block duplicate ICE; block one email holding two roles
+- Default-deny pricing: default is retail/locked; wholesale must be explicitly granted via approved tier — worst-case misconfig shows retail, never leaks wholesale
+- Pricing, catalogue access, and checkout gated on role + status on EVERY server request (never client-side)
+- "Yes means yes" — availability is a reservation, not a one-time read
+- Everything starts manual (admin types values); automates later by feeding the same field via API — no structural change when automating
+- Log everything from day one (append-only audit — no deletes, no edits)
+
+IDENTITY & STATUS:
+- Every account: role ∈ {shopper, buyer_company, vendor}, status ∈ {active, pending_review, rejected, suspended}
+- B2C shopper: instant signup, born active, retail pricing only, no validation
+- B2B buyer: registers with ICE + RC + documents → pending_review → admin approves → wholesale + MOQs unlocked. Acts as B2C shopper while pending (not locked out). Pricing can be tiered (reseller vs grossiste)
+- Vendor entry: admin-bulk-added (born active) OR self-registered (ICE + RC + bank → pending_review)
+- Vendor modes: self_serve (own dashboard, own stock) OR managed (no login; confirm/reject via WhatsApp button only; admin keeps stock)
+- Admin-created accounts skip review queue but carry same flags
+
+VENDOR RELIABILITY (4 compounding levers):
+1. 2-day stock refresh — missed refresh → products AUTO-HIDE
+2. Per-order confirmation — catches wrong "yes" before courier goes out
+3. Reliability score — count confirms vs rejects/timeouts; admin alerted on drop
+4. Payout holdback — e.g. 10% held, released after X clean deliveries; prefer holdback over upfront deposit; spell out in contract at validation
+
+ADMIN AREAS (build order: 1→3 first, then 4→6, then analytics):
+1. Validation — queue, AI pre-screen (human makes final call, AI never auto-approves), approve / return-for-fix / fraud-ban
+2. Catalogue + stock — manual stock entry per product (manual→API later), buyers see only available/unavailable, admin sees counts, 2-day-refresh + auto-hide
+3. Orders + bulk queue — priority weighs quantity AND arrival order, configurable by Atlas (not hard-coded); auto-accept/auto-cancel on timeout + notify
+4. Delivery + cash — courier dispatch by sector, attempt log, COD reconciliation
+5. Payouts — per vendor: running ledger, audit list of sub-orders behind the balance, pay + reset to zero, every payment logged
+6. Reliability + logs — flag brands that reject/timeout often; append-only audit of every status change, stock edit, and payout`);
 
   actors=[];
   [
-    { name:'B2C Buyer', role:'Regular retail customer. No validation required. Sees retail prices only.', actions:'Register, browse products, add to cart, checkout with COD, receive delivery, inspect before paying, track order, request P2 return within 7 days', scenarios:'Out-of-stock product blocked from cart, delivery failed on first attempt, delivery failed twice (auto-cancel), P2 return request, partial order cancellation (one sub-order cancelled)' },
-    { name:'B2B Buyer', role:'Verified wholesale reseller. Has submitted and passed ICE number validation. Access to wholesale pricing with 2,000 MAD minimum cart.', actions:'Register with ICE number, wait for admin approval, receive approval notification, browse with wholesale prices, toggle Personal/Business cart mode, enforce 2,000 MAD minimum, place bulk orders, trigger bulk verification gate, track separate sub-orders, request P2 return', scenarios:'ICE rejected by admin with reason, resubmit corrected ICE, cart below 2,000 MAD threshold blocked, bulk order above 10,000 MAD triggers manual verification gate, verification approved, verification rejected, P1 sub-order cancelled while P2 proceeds, both sub-orders fail, second delivery failure, P2 return approved, P2 return bank transfer' },
-    { name:'Vendor A', role:'External vendor who holds P1 (Vendor-Direct) stock at their own location. Must confirm orders within 4 hours and refresh stock every 48 hours.', actions:'Receive P1 sub-order alert, confirm availability within 4h, flag stock issue, hand off to courier, mark as shipped, update stock count in portal every 48h, view digital ledger, download weekly settlement report', scenarios:'Confirmation timeout after 4 hours (auto-cancel triggered), confirms order but stock turns out unavailable during pickup, 48-hour stock refresh missed (products auto-hidden), second delivery attempt fails and order cancels, receives first strike warning, receives second strike (7-day suspension), receives third strike (removal review), settlement dispute' },
-    { name:'Depot Operator', role:'Platform warehouse staff who manages P2 depot stock. Responsible for inbound stock, picking, packing, shipping, and return processing.', actions:'Log inbound stock after physical count at reception, confirm P2 sub-order availability, action bulk verification gate for P2, pick and pack order, mark as shipped with tracking, handle P2 return reception, log damaged units as stock adjustment, monitor low-stock alerts', scenarios:'Physical stock count differs from system count, inbound quantity differs from invoice, damaged unit found during packing, low stock alert triggered (auto-alert below 20 units, auto-hide below 5), bulk gate verification request, return received in good condition, return received damaged' },
-    { name:'Admin', role:'Platform owner with full access. Manages all operations including ICE validation, vendor oversight, bulk order gates, pricing, settlements, and escalations.', actions:'Review and approve or reject ICE submissions, set product prices and AMP% commission, action bulk order verification queue, generate weekly vendor settlement, monitor stock refresh compliance, manage vendor strike log, emergency de-list product, resolve disputes', scenarios:'ICE number has format error, suspected fraudulent ICE submission, vendor misses 48-hour stock refresh, bulk order gate timeout (neither confirmed nor rejected in time), vendor strike escalation to permanent removal, settlement discrepancy reported by vendor, buyer disputes non-delivery, emergency stock issue discovered' },
-    { name:'Delivery Agent', role:'Third-party courier responsible for last-mile delivery. Collects COD cash at the door after buyer inspects the package.', actions:'Pick up P1 order from vendor location or P2 from depot, attempt first delivery, collect COD payment after buyer inspection, confirm delivery in system, attempt second delivery if first failed, return package to origin after 2 failed attempts, log delivery outcome', scenarios:'Buyer refuses package at door before paying (first attempt), buyer is absent on first attempt, buyer absent again on second attempt (auto-cancellation triggered), COD amount incorrect, package visibly damaged on arrival at buyer, buyer claims package was never delivered, partial order delivery (one sub-order delivered, other not)' },
+    {
+      name: 'B2C Shopper',
+      role: 'Regular retail customer. Instant signup, born active, retail pricing only. No company validation required. Can shop immediately.',
+      actions: 'Register instantly, browse catalogue at retail prices, add to cart (triggers soft reservation with TTL), view per-line delivery dates, choose split or consolidated shipping, checkout with COD, track order and sub-orders separately, receive delivery and pay courier at door, submit SAV claim within 7-day window (photo/video proof) if issue after delivery',
+      scenarios: 'Stock reserved at cart but depleted at pack-time (correct count, notify, offer substitute), first delivery attempt fails — not home (2nd attempt scheduled), second attempt also fails (hold at pickup point then return to stock), courier calls before arriving but buyer unreachable, SAV claim approved (replace or refund), SAV claim rejected (proof insufficient), partial order where brand sub-order cancelled due to Rupture (Atlas part ships, buyer notified), repeat no-show flag triggered'
+    },
+    {
+      name: 'B2B Buyer',
+      role: 'Verified wholesale reseller or company buyer. Registers as a company with ICE + RC + supporting documents. Acts as B2C shopper while pending review (not locked out). Once approved by admin, unlocks wholesale pricing and MOQs. Pricing can be tiered (reseller vs grossiste).',
+      actions: 'Register with company name, ICE, RC, and documents, browse and buy at retail prices while pending, receive approval or rejection notification, switch to wholesale mode after approval, browse catalogue at wholesale prices with MOQs enforced, choose consolidated vs split shipping (often consolidated for B2B), place bulk orders, formally inspect shipment BEFORE unloading, reject at door (immediate reverse logistics) or file post-delivery claim within window',
+      scenarios: 'ICE already registered — blocked (duplicate ICE), documents incomplete — returned for fix, ICE fraud suspected — flagged to admin for manual review, pending review too long — buyer follows up, wholesale pricing tier upgraded from reseller to grossiste, order with both Atlas and brand sub-orders — brand line enters pending brand confirmation, brand confirms Disponible (proceeds), brand replies Rupture (brand line cancelled, Atlas part ships, buyer offered substitute), brand times out 2h (same outcome as Rupture), at-door rejection of brand sub-order (reverse logistics triggered), post-delivery claim filed with proof, consolidated shipment arrives with missing line, delivery attempt 1 fails — not home, delivery attempt 2 fails (return to stock)'
+    },
+    {
+      name: 'Vendor',
+      role: 'Supply side. Two entry paths: admin-bulk-added (born active, no review) or self-registered with ICE + RC + bank details (pending review). Two operating modes — self_serve: own dashboard, manages own stock and catalogue, confirms orders via dashboard; managed: no platform login, no dashboard, responds only via WhatsApp button reply [Disponible]/[Rupture] with unique webhook ID, stock managed by admin.',
+      actions: '[Self-serve] Self-register with ICE + RC + bank details, wait for admin approval, set up product catalogue, declare depot per product (atlas or brand), update stock count every 48h, confirm or reject sub-order via dashboard within timeout, view reliability score, view running ledger, download payout history, dispute a payout; [Managed] Receive WhatsApp stock-check template when sub-order created, tap [Disponible] or [Rupture] button (webhook reads unique ID — no human parsing), hand over packed order to courier at brand depot',
+      scenarios: 'ICE already registered — blocked, documents rejected by admin — return for fix, 48h stock refresh deadline missed — products auto-hidden from catalogue, stock refresh done — products restored, sub-order confirmation timeout (2h no reply) — auto-cancel sub-order, confirm then stock unavailable at pack-time — correct count and notify buyer, reliability score drops below threshold — admin alerted, payout holdback triggered (10% withheld), holdback released after X clean deliveries, payout dispute raised by vendor, managed vendor WhatsApp button reply not delivered (delivery status callback failure — escalate), managed vendor brand depot closed or unavailable (escalation path)'
+    },
+    {
+      name: 'Admin',
+      role: 'The only full-access actor. Validates all buyer and vendor accounts, manages catalogue and managed-brand stock, controls pricing tiers, runs payouts, handles all escalations, monitors reliability. Operates across 6 areas: Validation, Catalogue+Stock, Orders+Bulk Queue, Delivery+Cash, Payouts, Reliability+Logs. AI pre-screens validation queue but admin makes every final call — AI never auto-approves.',
+      actions: 'Review validation queue (with AI pre-screen flags), approve / return-for-fix / fraud-ban buyers and vendors, bulk-add pre-vetted vendors (born active), set retail and wholesale prices per tier per product, manually update managed-brand stock counts (manual field ready to be fed by API later), configure confirmation timeouts and auto-cancel rules, configure priority weights for bulk order queue, dispatch couriers by sector, log delivery attempts, reconcile COD cash (courier remits to Atlas, Atlas credits vendor ledger), generate payout per vendor (credit ledger, reset balance to zero), flag unreliable brands, review append-only audit log, emergency de-list product, resolve buyer and vendor disputes',
+      scenarios: 'Duplicate ICE detected at validation (block and notify), AI flags suspicious document — admin reviews and confirms fraud ban, AI flags suspicious document — admin overrides and approves, vendor reliability score drops below threshold (auto-alert to admin), brand confirmation timeout on a B2B order — admin decides: auto-substitute or partial ship or hold whole order, COD reconciliation discrepancy (courier remittance does not match expected), payout dispute from vendor (ledger entry challenged), emergency product de-listing (safety issue or fraud), self-serve vendor requests mode change to managed (or vice versa), buyer requests tier upgrade from reseller to grossiste (admin reviews and grants)'
+    },
+    {
+      name: 'Depot Operator',
+      role: 'Two fulfillment lanes per order. Atlas operator: our own warehouse staff — authoritative, fast, certain. Handles Atlas-depot sub-orders end to end (pick, pack, QC, courier handover). Brand/managed operator: brand-side human who receives a WhatsApp Business API template with [Disponible]/[Rupture] buttons — webhook reads the unique button ID (no human parsing needed). Each lane operates independently per sub-order.',
+      actions: '[Atlas operator] Receive pick list for Atlas-depot sub-orders, physically verify stock count at pick time (pack-time check = real guarantee), pack order, perform QC check at packing, hand over to courier with second QC check at handover, update sub-order status to shipped, receive B2C SAV returns or B2B at-door rejections, inspect returned items, restock or log as damaged; [Brand operator] Receive WhatsApp stock-check template when sub-order is created, tap [Disponible] or [Rupture] reply button within 2h timeout, prepare and pack order at brand depot, hand over to courier for pickup',
+      scenarios: '[Atlas] Physical count differs from system count at pick time — correct stock, notify buyer, offer substitute or cancel line; damaged unit found during packing — remove from shipment, correct count, notify; courier handover QC fails — hold shipment until resolved; B2C SAV return received in good condition — restock; B2C SAV return received damaged — log and write off; B2B at-door rejection received — log reverse logistics, inspect on return; [Brand] Reply button not tapped within 2h timeout — sub-order auto-cancelled, Atlas part proceeds, buyer notified; Rupture tapped — same outcome as timeout; Disponible tapped but stock actually unavailable when courier arrives (pack-time mismatch) — escalate to admin; WhatsApp delivery status callback fails — escalate, retry or fall back to phone call'
+    },
   ].forEach(a => addActor(a));
 
   checkNew();
   window.scrollTo({top:0,behavior:'smooth'});
-  showToast('Atlas Marketplace loaded — ready to build prompt');
+  showToast('Atlas loaded — ready to build prompt');
 }
 
 // ─── Toast ────────────────────────────────────────────────────────────────
